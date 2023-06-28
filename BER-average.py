@@ -13,3 +13,11 @@ average_ber = ber_values.mean()
 
 print("Average BER:", average_ber)
 
+# Calculate the differences between consecutive BER values
+differences = ber_values.diff()
+
+# Find the frames where abrupt value changes occur
+abrupt_change_frames = differences[abs(differences) > 0.4].index.tolist()
+
+# print("Frames with abrupt value changes:", abrupt_change_frames)
+

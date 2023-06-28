@@ -21,12 +21,12 @@ for evm, snr in frames:
 
 
 # Remove EVM values larger than 10 and their corresponding SNR
-filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if evm <= 10]
+filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if evm <= 20]
 evm_values, snr_values = zip(*filtered_values)
 
 # Remove SNR values equal to 0 and their corresponding EVM
-filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if snr != 0]
-evm_values, snr_values = zip(*filtered_values)
+#filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if snr != 0]
+#evm_values, snr_values = zip(*filtered_values)
 
 # Calculate the average
 evm_average = sum(evm_values) / len(evm_values)
