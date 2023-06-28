@@ -21,7 +21,7 @@ for evm, snr in frames:
 
 
 # Remove EVM values larger than 10 and their corresponding SNR
-filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if evm <= 20]
+filtered_values = [(evm, snr) for evm, snr in zip(evm_values, snr_values) if evm <= 1000000]
 evm_values, snr_values = zip(*filtered_values)
 
 # Remove SNR values equal to 0 and their corresponding EVM
@@ -33,8 +33,17 @@ evm_average = sum(evm_values) / len(evm_values)
 snr_average = sum(snr_values) / len(snr_values)
 
 evm_values = np.array(evm_values)
-evm_rms = np.sqrt(np.mean(evm_values**2))
+evm_values_1 = np.sort(evm_values)
+evm_length = np.shape(evm_values)[0]
+evm_values_2 = evm_values_1[int(evm_length*0.1): int(evm_length*0.7)]
+evm_rms = np.sqrt(np.mean(evm_values_2**2))
 
-print("Average EVM:", evm_average)
-print("Average True SNR:", snr_average)
+snr_values = np.array(snr_values)
+snr_values_1 = np.sort(snr_values)
+snr_length = np.shape(snr_values)[0]
+snr_values_2 = snr_values_1[int(snr_length*0.3): int(snr_length*0.9)]
+snr_rms = np.mean(snr_values_2)
+
+# print("Average EVM:", evm_average)
+print("Average True SNR:", snr_rms)
 print("rms EVM:", evm_rms)
