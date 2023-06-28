@@ -25,8 +25,11 @@ snr_length = np.shape(snr_values)[0]
 snr_values_2 = snr_values_1[int(snr_length*0.3): int(snr_length*0.9)]
 snr_rms = np.mean(snr_values_2)
 
-
+snr_values_1_2nd = np.sort(snr_values_2nd)
+snr_length_2nd = np.shape(snr_values_2nd)[0]
+snr_values_2_2nd = snr_values_1_2nd[int(snr_length_2nd*0.3): int(snr_length_2nd*0.9)]
+snr_rms_2nd = np.mean(snr_values_2_2nd)
 
 
 print("Average SNR-H:", snr_rms)
-
+print("Average SNR-V:", snr_rms_2nd)

@@ -9,8 +9,7 @@ file_name = options.file_name
 
 df = pd.read_csv(file_name, header=None)
 ber_values = df.iloc[1500:-1500, 1]  # Extract BER values from the 1500th frame to the end-1500 frame
-
-#ber_values_column2 = df.iloc[1500:-1500, 2]
+ber_values_column2 = df.iloc[1500:-1500, 2]
 
 ber_values = ber_values.to_numpy()
 
