@@ -62,6 +62,7 @@ o_filename = 'evm_vs_snr.png'
 
 # python3 average_EVM_SNR.py --file WinTech-H/16QAM-H-333/SNR-30.txt
 
+i = 1
 for mod in mod_t:
     for cr in code_rate:
 
@@ -71,10 +72,11 @@ for mod in mod_t:
 
         marker = get_maker(cr) # marker: o, x, s, ^
         line = get_linestyle(mod) # line: -, --, :
-        label = mod + '-' + pol[0] + '-0.' + cr
+        label = 'MCS' + str(i) + ': ' + mod + '-' + pol[0] + '-0.' + cr
 
         # Plot the sequence
         plt.plot(snr, evm, linestyle=line, marker=marker, label=label)
+        i = i + 1
 
 plt.xlim(0, 35)
 # plt.ylim(0, 100)
