@@ -8,18 +8,18 @@ import numpy as np
 # Functions for plot attributes
 ################################################################################
 
-def get_marker(mod):
+def get_marker(pol):
     # marker = ['o', '^', 'x']
     marker = 'x'
-    # if pol == 'H':
-    #     marker = 'o'
-    # if pol == 'V':
-    #     marker = '^'
-
-    if mod == '16QAM':
+    if pol == 'H':
         marker = 'o'
-    if mod == '64QAM':
+    if pol == 'V':
         marker = '^'
+
+    # if mod == '16QAM':
+    #     marker = 'o'
+    # if mod == '64QAM':
+    #     marker = '^'
     return marker
 
 def get_color(mod):
@@ -48,30 +48,34 @@ def get_color(mod):
     return color
 
 def get_linestyle(pol):
-    ls = ':'
+    ls = '--'
     if pol == 'H':
         ls = '-'
     if pol == 'V':
-        ls = '--'
+        ls = ':'
     return ls
 
 ################################################################################
-# Font settings
+# Font settings: tick size, linewidth, marker size
 ################################################################################
 
 # Font sizes
-SMALL_SIZE = 15
-MEDIUM_SIZE = 18
-BIGGER_SIZE = 20
 
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=17)     # fontsize of the x and y labels
-plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
+plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
+plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
 plt.rc('legend', fontsize=17)    # legend fontsize
 # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
+
+FIG_SIZE_W = 6
+FIG_SIZE_H = 4.5
+
+plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
+plt.rc('lines', linewidth=3)
+plt.rc('lines', markersize=10)
 
 ################################################################################
 # I/O format
@@ -81,8 +85,8 @@ plt.rc('legend', fontsize=17)    # legend fontsize
 # Input
 #
 
-# chan_type = 'MIMO'
-chan_type = 'SISO'
+chan_type = 'MIMO'
+# chan_type = 'SISO'
 
 input_filepath = './data/'
 input_fileprefix = input_filepath + 'result_' + chan_type
@@ -130,8 +134,8 @@ for mcs_idx in range(num_mcs):
 
         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
         cr = code_rate[mcs_idx % 3]
-        marker = get_marker(mod) # marker: o, x, s, ^
-        color = get_color(mod) # color: 
+        marker = get_marker(p) # marker: o, x, s, ^
+        color = get_color(mod) # color: default scheme
         line = get_linestyle(p) # line: -, --, :
         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
         label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
@@ -144,6 +148,7 @@ for mcs_idx in range(num_mcs):
 
 plt.xlim(10, 35)
 plt.ylim(0, 50)
+plt.xticks(np.arange(10, 35, step=5))
 plt.xlabel('SNR (dB)')
 plt.ylabel('EVM (%)')
 # plt.title('EVM vs SNR')
@@ -161,8 +166,8 @@ for mcs_idx in range(num_mcs):
 
         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
         cr = code_rate[mcs_idx % 3]
-        marker = get_marker(mod) # marker: o, x, s, ^
-        color = get_color(mod) # color: 
+        marker = get_marker(p) # marker: o, x, s, ^
+        color = get_color(mod) # color: default scheme
         line = get_linestyle(p) # line: -, --, :
         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
         label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
@@ -176,8 +181,9 @@ for mcs_idx in range(num_mcs):
 plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
 plt.ylim(top=1)
+plt.xticks(np.arange(0, 35, step=5))
 # plt.gca().yaxis.set_major_locator(plt.LogLocator(base=10, numticks=10)) # major grid (int)
-plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=100)) # minor grid
+plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
 plt.xlabel('SNR (dB)')
 plt.ylabel('BER')
 # plt.title('BER vs SNR')
