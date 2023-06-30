@@ -131,65 +131,67 @@ num_snr = len(snr_v[0])
 # Plot EVM
 ################################################################################
 
-for mcs_idx in range(num_mcs):
-    for p in pol:
+# for mcs_idx in range(num_mcs):
+#     for p in pol:
 
-        mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
-        cr = code_rate[mcs_idx % 3]
-        marker = get_marker(p) # marker: o, x, s, ^
-        color = get_color(mod) # color: default scheme
-        line = get_linestyle(p) # line: -, --, :
-        # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
-        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+#         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
+#         cr = code_rate[mcs_idx % 3]
+#         marker = get_marker(p) # marker: o, x, s, ^
+#         color = get_color(mod) # color: default scheme
+#         line = get_linestyle(p) # line: -, --, :
+#         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
+#         label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
 
-        snr = snr_v if p == 'V' else snr_h
-        evm = evm_v if p == 'V' else evm_h
+#         snr = snr_v if p == 'V' else snr_h
+#         evm = evm_v if p == 'V' else evm_h
 
-        if mcs_idx+1 in mcs:
-            plt.plot(snr[mcs_idx], evm[mcs_idx],
-                     linestyle=line,
-                     marker=marker,
-                     label=label,
-                     color=color)
+#         if mcs_idx+1 in mcs:
+#             plt.plot(snr[mcs_idx], evm[mcs_idx],
+#                      linestyle=line,
+#                      marker=marker,
+#                      label=label,
+#                      color=color)
 
-# use second plot to set marker in front
-for mcs_idx in range(num_mcs):
-    for p in pol:
+# # use second plot to set marker in front
+# for mcs_idx in range(num_mcs):
+#     for p in pol:
 
-        mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
-        cr = code_rate[mcs_idx % 3]
-        marker = get_marker(p) # marker: o, x, s, ^
-        color = get_color(mod) # color: default scheme
-        line = get_linestyle(p) # line: -, --, :
-        # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
-        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+#         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
+#         cr = code_rate[mcs_idx % 3]
+#         marker = get_marker(p) # marker: o, x, s, ^
+#         color = get_color(mod) # color: default scheme
+#         line = get_linestyle(p) # line: -, --, :
+#         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
+#         label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
 
-        snr = snr_v if p == 'V' else snr_h
-        evm = evm_v if p == 'V' else evm_h
+#         snr = snr_v if p == 'V' else snr_h
+#         evm = evm_v if p == 'V' else evm_h
 
-        if mcs_idx+1 in mcs:
-            plt.scatter(snr[mcs_idx], evm[mcs_idx],
-                       linestyle='-',
-                       marker=marker,
-                       color=color,
-                       edgecolors='black',
-                       linewidth=1.5,
-                       zorder=5)
+#         if mcs_idx+1 in mcs:
+#             plt.scatter(snr[mcs_idx], evm[mcs_idx],
+#                        linestyle='-',
+#                        marker=marker,
+#                        color=color,
+#                        edgecolors='black',
+#                        linewidth=1.5,
+#                        zorder=5)
 
-plt.xlim(10, 35)
-plt.ylim(0, 50)
-plt.xticks(np.arange(10, 36, step=5))
-plt.xlabel('SNR (dB)')
-plt.ylabel('EVM (%)')
-# plt.title('EVM vs SNR')
-plt.legend()
-plt.grid()
-plt.savefig(output_fileprefix + '_EVM.' + output_format, format=output_format, bbox_inches='tight')
-plt.clf()
+# plt.xlim(10, 35)
+# plt.ylim(0, 50)
+# plt.xticks(np.arange(10, 36, step=5))
+# plt.xlabel('SNR (dB)')
+# plt.ylabel('EVM (%)')
+# # plt.title('EVM vs SNR')
+# plt.legend()
+# plt.grid()
+# plt.savefig(output_fileprefix + '_EVM.' + output_format, format=output_format, bbox_inches='tight')
+# plt.clf()
 
 ################################################################################
 # Plot BER
 ################################################################################
+
+fig, ax = plt.subplots()
 
 for mcs_idx in range(num_mcs):
     for p in pol:
@@ -206,6 +208,11 @@ for mcs_idx in range(num_mcs):
         ber = ber_v if p == 'V' else ber_h
 
         if mcs_idx+1 in mcs:
+            # remove outliers
+            for i in range(num_snr):
+                if ber[mcs_idx][i] < 1e-4 and snr[mcs_idx][i] > 25:
+                    ber[mcs_idx][i] = 0
+
             plt.plot(snr[mcs_idx], ber[mcs_idx],
                      linestyle=line,
                      marker=marker,
@@ -228,6 +235,7 @@ for mcs_idx in range(num_mcs):
         ber = ber_v if p == 'V' else ber_h
 
         if mcs_idx+1 in mcs:
+
             plt.scatter(snr[mcs_idx], ber[mcs_idx],
                        linestyle='-',
                        marker=marker,
@@ -240,10 +248,18 @@ plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
 plt.ylim(top=1)
 plt.xticks(np.arange(0, 36, step=5))
+
+## Modify y-axis labels
+y_ticks = ax.get_yticks()
+y_labels = [item.get_text() for item in ax.get_yticklabels()]
+y_labels[0] = '$< 10^{-5}$'
+ax.set_yticks(y_ticks)
+ax.set_yticklabels(y_labels)
+
 # plt.gca().yaxis.set_major_locator(plt.LogLocator(base=10, numticks=10)) # major grid (int)
 # plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
 plt.xlabel('SNR (dB)')
-plt.ylabel('BER')
+plt.ylabel('BER', labelpad=-20) # move axis title closer to the axis
 # plt.title('BER vs SNR')
 plt.legend(loc='lower left')
 plt.grid(True, which='both', ls='-')
