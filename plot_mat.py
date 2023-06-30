@@ -76,6 +76,8 @@ FIG_SIZE_H = 4.5
 plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.rc('lines', linewidth=3)
 plt.rc('lines', markersize=10)
+plt.rc('lines', markeredgecolor='black')
+plt.rc('lines', markeredgewidth=2)
 
 ################################################################################
 # I/O format
@@ -144,11 +146,15 @@ for mcs_idx in range(num_mcs):
         evm = evm_v if p == 'V' else evm_h
 
         if mcs_idx+1 in mcs:
-            plt.plot(snr[mcs_idx], evm[mcs_idx], linestyle=line, marker=marker, label=label, color=color)
+            plt.plot(snr[mcs_idx], evm[mcs_idx],
+                     linestyle=line,
+                     marker=marker,
+                     label=label,
+                     color=color)
 
 plt.xlim(10, 35)
 plt.ylim(0, 50)
-plt.xticks(np.arange(10, 35, step=5))
+plt.xticks(np.arange(10, 36, step=5))
 plt.xlabel('SNR (dB)')
 plt.ylabel('EVM (%)')
 # plt.title('EVM vs SNR')
@@ -176,14 +182,18 @@ for mcs_idx in range(num_mcs):
         ber = ber_v if p == 'V' else ber_h
 
         if mcs_idx+1 in mcs:
-            plt.plot(snr[mcs_idx], ber[mcs_idx], linestyle=line, marker=marker, label=label, color=color)
+            plt.plot(snr[mcs_idx], ber[mcs_idx],
+                     linestyle=line,
+                     marker=marker,
+                     label=label,
+                     color=color)
 
 plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
 plt.ylim(top=1)
-plt.xticks(np.arange(0, 35, step=5))
+plt.xticks(np.arange(0, 36, step=5))
 # plt.gca().yaxis.set_major_locator(plt.LogLocator(base=10, numticks=10)) # major grid (int)
-plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
+# plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
 plt.xlabel('SNR (dB)')
 plt.ylabel('BER')
 # plt.title('BER vs SNR')
