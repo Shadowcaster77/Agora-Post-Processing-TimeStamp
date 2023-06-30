@@ -6,6 +6,7 @@
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from matplotlib.ticker import FormatStrFormatter
 from scipy.io import loadmat
 import numpy as np
 
@@ -47,11 +48,14 @@ plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 # Input
 #
 
+# ul = True
+ul = False
+
 input_filepath = './data/'
-input_filename = 'CFO_TX2_RX3_trial1.mat'
-# input_filename = 'CFO_TX2_RX3_trial2.mat'
-# input_filename = 'CFO_TX3_RX2_trial1.mat'
-# input_filename = 'CFO_TX3_RX2_trial2.mat'
+if ul:
+    input_filename = 'CFO_TX2_RX3_trial1.mat' # uplink
+else:
+    input_filename = 'CFO_TX3_RX2_trial2.mat' # downlink
 input_file = input_filepath + input_filename
 
 data = loadmat(input_file)
@@ -69,26 +73,34 @@ output_filepath = './fig/'
 output_fileprefix = output_filepath
 
 ################################################################################
+# Print CFO stats
+################################################################################
+
+avg_cfo = np.average(cfo)
+print('Average CFO = {} Hz'.format(avg_cfo))
+
+################################################################################
 # Plot CFO
 ################################################################################
 
 fig, ax = plt.subplots()
 formatter = FuncFormatter(kilos)
 ax.xaxis.set_major_formatter(formatter)
+# ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
+plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
 binwidth = 100
-neg = 0
-l_bound = -100000 if neg == 1 else 90000
-h_bound = -90000 if neg == 1 else 100000
-plt.hist(cfo, edgecolor=edgecolor, bins=range(l_bound, h_bound, binwidth))
+l_bound = 90000 if ul else -100000
+h_bound = 100000 if ul else -90000
+plt.hist(cfo, edgecolor=edgecolor, bins=range(l_bound, h_bound, binwidth), density=True)
 
 # plt.xlim(10, 35)
-plt.ylim(0, 15)
-plt.yticks(np.arange(0, 16, 5))
+plt.ylim(0, 1e-3)
+# plt.yticks(np.arange(0, 11, 5))
 plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
-plt.title(input_filename)
-plt.xlabel('Frequency')
-plt.ylabel('Distribution')
+# plt.title(input_filename)
+plt.xlabel('Carrier Frequency Offset (CFO)')
+plt.ylabel('Probability')
 plt.grid()
 plt.savefig(output_fileprefix + 'CFO.' + output_format,
             format=output_format,
