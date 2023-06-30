@@ -87,8 +87,8 @@ plt.rc('lines', markeredgewidth=2)
 # Input
 #
 
-chan_type = 'MIMO'
-# chan_type = 'SISO'
+# chan_type = 'MIMO'
+chan_type = 'SISO'
 
 input_filepath = './data/'
 input_fileprefix = input_filepath + 'result_' + chan_type
@@ -152,6 +152,30 @@ for mcs_idx in range(num_mcs):
                      label=label,
                      color=color)
 
+# use second plot to set marker in front
+for mcs_idx in range(num_mcs):
+    for p in pol:
+
+        mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
+        cr = code_rate[mcs_idx % 3]
+        marker = get_marker(p) # marker: o, x, s, ^
+        color = get_color(mod) # color: default scheme
+        line = get_linestyle(p) # line: -, --, :
+        # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
+        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+
+        snr = snr_v if p == 'V' else snr_h
+        evm = evm_v if p == 'V' else evm_h
+
+        if mcs_idx+1 in mcs:
+            plt.scatter(snr[mcs_idx], evm[mcs_idx],
+                       linestyle='-',
+                       marker=marker,
+                       color=color,
+                       edgecolors='black',
+                       linewidth=1.5,
+                       zorder=5)
+
 plt.xlim(10, 35)
 plt.ylim(0, 50)
 plt.xticks(np.arange(10, 36, step=5))
@@ -187,6 +211,30 @@ for mcs_idx in range(num_mcs):
                      marker=marker,
                      label=label,
                      color=color)
+
+# use second plot to set marker in front
+for mcs_idx in range(num_mcs):
+    for p in pol:
+
+        mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
+        cr = code_rate[mcs_idx % 3]
+        marker = get_marker(p) # marker: o, x, s, ^
+        color = get_color(mod) # color: default scheme
+        line = get_linestyle(p) # line: -, --, :
+        # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
+        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+
+        snr = snr_v if p == 'V' else snr_h
+        ber = ber_v if p == 'V' else ber_h
+
+        if mcs_idx+1 in mcs:
+            plt.scatter(snr[mcs_idx], ber[mcs_idx],
+                       linestyle='-',
+                       marker=marker,
+                       color=color,
+                       edgecolors='black',
+                       linewidth=1.5,
+                       zorder=5)
 
 plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
