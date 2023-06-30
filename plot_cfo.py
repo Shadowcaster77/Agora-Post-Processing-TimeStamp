@@ -47,8 +47,8 @@ plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 # Input
 #
 
-# ul = True
-ul = False
+ul = True
+# ul = False
 
 input_filepath = './data/'
 if ul:
@@ -91,6 +91,7 @@ binwidth = 500
 l_bound = 90000 if ul else -100000
 h_bound = 100000 if ul else -90000
 n, bins, _ = plt.hist(cfo, bins=range(l_bound, h_bound, binwidth), density=True,
+                      color='white',
                       edgecolor=edgecolor,
                       linewidth=2,
                       zorder=10)
