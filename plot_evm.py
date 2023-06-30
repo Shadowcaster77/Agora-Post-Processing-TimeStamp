@@ -1,3 +1,9 @@
+################################################################################
+# Plot BER and EVM over SNR, respectively. Output seperate figures for
+# 16QAM/64QAM. Overall output four plots.
+# author: Chung-Hsuan Tung
+################################################################################
+
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 from brokenaxes import brokenaxes
@@ -184,6 +190,7 @@ for chan in chan_type:
                 mod = mod_type[0] if mcs_idx < 3 else mod_type[1]
                 data[mod][chan][p]['snr'] = data_in[chan][p]['snr'][mcs_idx]
                 data[mod][chan][p]['evm'] = data_in[chan][p]['evm'][mcs_idx]
+                data[mod][chan][p]['ber'] = data_in[chan][p]['ber'][mcs_idx]
 
 
 ################################################################################
@@ -240,3 +247,67 @@ for mod in mod_type:
                 format=output_format,
                 bbox_inches='tight')
     plt.clf()
+
+# ################################################################################
+# # Plot BER
+# ################################################################################
+
+# fig, ax = plt.subplots()
+
+# for mod in mod_type:
+#     # Plot based on modulation scheme
+
+#     # First loop can plot everything escept for the marker edge
+#     for chan in chan_type:
+#         for p in pol:
+#             # cr = code_rate[mcs_idx % 3]
+#             marker = get_marker(p) # marker: o, x, s, ^
+#             color = get_color(p) # color: default scheme
+#             line = get_linestyle(chan) # line: -, --, :
+#             label = chan + '-' + p
+
+#             snr = data[mod][chan][p]['snr']
+#             ber = data[mod][chan][p]['ber']
+
+#             plt.plot(snr, ber, linestyle=line, marker=marker, label=label, color=color)
+
+#     # Second loop brings the marker to front
+#     for chan in chan_type:
+#         for p in pol:
+#             # cr = code_rate[mcs_idx % 3]
+#             marker = get_marker(p) # marker: o, x, s, ^
+#             color = get_color(p) # color: default scheme
+#             line = get_linestyle(chan) # line: -, --, :
+#             label = chan + '-' + p
+
+#             snr = data[mod][chan][p]['snr']
+#             ber = data[mod][chan][p]['ber']
+
+#             plt.scatter(snr, ber, linestyle='-', marker=marker, color=color,
+#                         edgecolors=markeredgecolor,
+#                         linewidth=markeredgewidth,
+#                         zorder=10)
+    
+#     plt.yscale('symlog', linthresh=1e-4)
+#     plt.xlim(0, 35)
+#     plt.ylim(top=1)
+#     plt.xticks(np.arange(0, 36, step=5))
+
+#     ## Modify y-axis labels
+#     y_ticks = ax.get_yticks()
+#     y_labels = [item.get_text() for item in ax.get_yticklabels()]
+#     y_labels[0] = '$< 10^{-5}$'
+#     ax.set_yticks(y_ticks)
+#     ax.set_yticklabels(y_labels)
+
+#     # plt.gca().yaxis.set_major_locator(plt.LogLocator(base=10, numticks=10)) # major grid (int)
+#     # plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
+#     plt.xlabel('SNR (dB)')
+#     plt.ylabel('BER', labelpad=-20) # move axis title closer to the axis
+#     # plt.title('BER vs SNR')
+#     plt.legend(loc='lower left')
+#     plt.grid(True, which='both', ls='-')
+#     plt.savefig(output_filepath + 'BER_' + mod + '.' + output_format,
+#                 format=output_format,
+#                 bbox_inches='tight')
+#     plt.clf()
