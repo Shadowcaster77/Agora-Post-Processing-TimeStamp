@@ -5,8 +5,6 @@
 ################################################################################
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-from brokenaxes import brokenaxes
 from scipy.io import loadmat
 import numpy as np
 

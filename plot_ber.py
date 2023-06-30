@@ -1,6 +1,10 @@
+################################################################################
+# Plot BER and EVM over SNR, respectively. Output seperate figures for
+# SISO/MIMO. Overall output four plots.
+# author: Chung-Hsuan Tung
+################################################################################
+
 import matplotlib.pyplot as plt
-import matplotlib.ticker as mtick
-from brokenaxes import brokenaxes
 from scipy.io import loadmat
 import numpy as np
 
