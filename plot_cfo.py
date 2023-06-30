@@ -6,7 +6,6 @@
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
-from matplotlib.ticker import FormatStrFormatter
 from scipy.io import loadmat
 import numpy as np
 
@@ -16,7 +15,7 @@ import numpy as np
 
 def kilos(x, pos):
     'The two args are the value and tick position'
-    return '%1.1fk' % (x*1e-3)
+    return '%1.1f' % (x*1e-3)
 
 ################################################################################
 # Font settings: tick size, linewidth, marker size
@@ -86,21 +85,25 @@ print('Average CFO = {} Hz'.format(avg_cfo))
 fig, ax = plt.subplots()
 formatter = FuncFormatter(kilos)
 ax.xaxis.set_major_formatter(formatter)
-# ax.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-binwidth = 100
+binwidth = 500
 l_bound = 90000 if ul else -100000
 h_bound = 100000 if ul else -90000
-plt.hist(cfo, edgecolor=edgecolor, bins=range(l_bound, h_bound, binwidth), density=True)
+n, bins, _ = plt.hist(cfo, bins=range(l_bound, h_bound, binwidth), density=True,
+                      edgecolor=edgecolor,
+                      linewidth=2,
+                      zorder=10)
+
+# print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
 # plt.xlim(10, 35)
 plt.ylim(0, 1e-3)
 # plt.yticks(np.arange(0, 11, 5))
 plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
 # plt.title(input_filename)
-plt.xlabel('Carrier Frequency Offset (CFO)')
-plt.ylabel('Probability')
+plt.xlabel('CFO (kHz)')
+plt.ylabel('Probability Density')
 plt.grid()
 plt.savefig(output_fileprefix + 'CFO.' + output_format,
             format=output_format,
