@@ -12,18 +12,18 @@ import numpy as np
 # Functions for plot attributes
 ################################################################################
 
-def get_marker(pol):
+def get_marker(chan):
     # marker = ['o', '^', 'x']
     marker = 'x'
-    if pol == 'H':
-        marker = 'o'
-    if pol == 'V':
-        marker = '^'
-
-    # if mod == '16QAM':
+    # if pol == 'H':
     #     marker = 'o'
-    # if mod == '64QAM':
+    # if pol == 'V':
     #     marker = '^'
+
+    if chan == 'SISO':
+        marker = 'o'
+    if chan == 'MIMO':
+        marker = '^'
     return marker
 
 def get_color(pol):
@@ -44,12 +44,12 @@ def get_color(pol):
         color = 'tab:orange'
     return color
 
-def get_linestyle(chan):
-    ls = '--'
-    if chan == 'MIMO':
+def get_linestyle(pol):
+    ls = ':'
+    if pol == 'H':
         ls = '-'
-    if chan == 'SISO':
-        ls = ':'
+    if pol == 'V':
+        ls = '--'
     return ls
 
 def get_evm_req(mod):
@@ -76,7 +76,7 @@ plt.rc('legend', fontsize=20)    # legend fontsize
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
-FIG_SIZE_H = 4.5
+FIG_SIZE_H = 6
 
 markeredgecolor='black'
 markeredgewidth=2
@@ -84,8 +84,8 @@ markeredgewidth=2
 plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.rc('lines', linewidth=5)
 plt.rc('lines', markersize=15)
-plt.rc('lines', markeredgecolor=markeredgecolor)
-plt.rc('lines', markeredgewidth=markeredgewidth)
+# plt.rc('lines', markeredgecolor=markeredgecolor)
+# plt.rc('lines', markeredgewidth=markeredgewidth)
 
 ################################################################################
 # Param settings
@@ -202,32 +202,15 @@ for mod in mod_type:
     for chan in chan_type:
         for p in pol:
             # cr = code_rate[mcs_idx % 3]
-            marker = get_marker(p) # marker: o, x, s, ^
+            marker = get_marker(chan) # marker: o, x, s, ^
             color = get_color(p) # color: default scheme
-            line = get_linestyle(chan) # line: -, --, :
-            label = chan + '-' + p
+            line = get_linestyle(p) # line: -, --, :
+            label = p + '-pol, ' + chan
 
             snr = data[mod][chan][p]['snr']
             evm = data[mod][chan][p]['evm']
 
             plt.plot(snr, evm, linestyle=line, marker=marker, label=label, color=color)
-
-    # Second loop brings the marker to front
-    for chan in chan_type:
-        for p in pol:
-            # cr = code_rate[mcs_idx % 3]
-            marker = get_marker(p) # marker: o, x, s, ^
-            color = get_color(p) # color: default scheme
-            line = get_linestyle(chan) # line: -, --, :
-            label = chan + '-' + p
-
-            snr = data[mod][chan][p]['snr']
-            evm = data[mod][chan][p]['evm']
-
-            plt.scatter(snr, evm, linestyle='-', marker=marker, color=color,
-                        edgecolors=markeredgecolor,
-                        linewidth=markeredgewidth,
-                        zorder=10)
     
     # Standard EVM
     evm_req = get_evm_req(mod)

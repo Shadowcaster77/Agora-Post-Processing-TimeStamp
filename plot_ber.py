@@ -75,16 +75,16 @@ plt.rc('legend', fontsize=16)    # legend fontsize
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
-FIG_SIZE_H = 4.5
+FIG_SIZE_H = 6
 
 markeredgecolor='black'
 markeredgewidth=2
 
-plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
+# plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.rc('lines', linewidth=5)
 plt.rc('lines', markersize=15)
-plt.rc('lines', markeredgecolor=markeredgecolor)
-plt.rc('lines', markeredgewidth=markeredgewidth)
+# plt.rc('lines', markeredgecolor=markeredgecolor)
+# plt.rc('lines', markeredgewidth=markeredgewidth)
 
 ################################################################################
 # I/O format
@@ -198,7 +198,7 @@ num_snr = len(snr_v[0])
 # Plot BER
 ################################################################################
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 
 for mcs_idx in range(num_mcs):
     for p in pol:
@@ -225,29 +225,6 @@ for mcs_idx in range(num_mcs):
                      marker=marker,
                      label=label,
                      color=color)
-
-# use second plot to set marker in front
-for mcs_idx in range(num_mcs):
-    for p in pol:
-
-        mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
-        cr = code_rate[mcs_idx % 3]
-        marker = get_marker(p) # marker: o, x, s, ^
-        color = get_color(p) # color: default scheme
-        line = get_linestyle(mod) # line: -, --, :
-
-        snr = snr_v if p == 'V' else snr_h
-        ber = ber_v if p == 'V' else ber_h
-
-        if mcs_idx+1 in mcs:
-
-            plt.scatter(snr[mcs_idx], ber[mcs_idx],
-                       linestyle='-',
-                       marker=marker,
-                       color=color,
-                       edgecolors=markeredgecolor,
-                       linewidth=markeredgewidth,
-                       zorder=10)
 
 plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
