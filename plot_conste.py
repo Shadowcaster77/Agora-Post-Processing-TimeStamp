@@ -22,7 +22,7 @@ mod_type = ['16QAM', '64QAM'] # modulation type
 # code_rate = ['333', '500', '666'] # n/1000
 # snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
 
-chan = chan_type[0]
+chan = chan_type[1]
 p = pol[0]
 mod = mod_type[1]
 
@@ -60,11 +60,14 @@ plt.rc('lines', markersize=10)
 #
 
 input_filepath = './data/'
-input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '_' + p + .mat
+if chan == 'MIMO':
+    input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '.mat'
+elif chan == 'SISO':
+    input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '_' + p + '.mat'
 # input_file = input_filepath + 'result_conste_1.mat'
 
 data = loadmat(input_file)
-evm = data['evm']
+evm_read = data['evm']
 real = data['real'][0]
 imag = data['imag'][0]
 
@@ -77,15 +80,10 @@ imag = data['imag'][0]
 output_format = 'pdf'
 
 output_filepath = './fig/'
-output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod + '_' + p
-
-################################################################################
-# Print EVM info
-################################################################################
-
-evm = evm[0][0] # depacakge
-evm /= 100
-print('EVM = {:.2%}'.format(evm))
+if chan == 'MIMO':
+    output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod
+elif chan == 'SISO':
+    output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod + '_' + p
 
 ################################################################################
 # Create Reference Grid
@@ -106,6 +104,28 @@ ref = []
 for i in ref_symbols[mod]['I']:
     for q in ref_symbols[mod]['Q']:
         ref.append((i, q))
+
+################################################################################
+# Calculate EVM
+################################################################################
+
+error_i = []
+error_q = []
+for idx in range(len(real)):
+    error_i.append(np.min(np.abs(real[idx] - ref_symbols[mod]['I'])))
+    error_q.append(np.min(np.abs(imag[idx] - ref_symbols[mod]['Q'])))
+error_i = np.array(error_i)
+error_q = np.array(error_q)
+evm_cal = np.sqrt(np.mean(error_i ** 2 + error_q ** 2))
+
+################################################################################
+# Print EVM info
+################################################################################
+
+evm_read = evm_read[0][0] # depacakge
+evm_read /= 100
+print('EVM Read = {:.2%}'.format(evm_read))
+print('EVM Calculated = {:.2%}'.format(evm_cal))
 
 ################################################################################
 # Plot Constellation
@@ -146,7 +166,8 @@ plt.xlim(l_bound, h_bound)
 plt.ylim(l_bound, h_bound)
 plt.xticks(np.arange(l_bound, h_bound + 0.01, step))
 plt.yticks(np.arange(l_bound, h_bound + 0.01, step))
-plt.title('EVM = {:.2%}'.format(evm), fontsize=28)
+# plt.title('EVM = {:.2%}'.format(evm_read), fontsize=28)
+plt.title('EVM = {:.2%}'.format(evm_cal), fontsize=28)
 plt.xlabel('I')
 plt.ylabel('Q')
 plt.grid()
@@ -154,3 +175,5 @@ plt.savefig(output_fileprefix + '.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
+
+print('Input File: ' + input_file)
