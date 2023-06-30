@@ -22,8 +22,9 @@ mod_type = ['16QAM', '64QAM'] # modulation type
 # code_rate = ['333', '500', '666'] # n/1000
 # snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
 
-chan = chan_type[1]
-mod = mod_type[0]
+chan = chan_type[0]
+p = pol[0]
+mod = mod_type[1]
 
 ################################################################################
 # Font settings: tick size, linewidth, marker size
@@ -59,8 +60,8 @@ plt.rc('lines', markersize=10)
 #
 
 input_filepath = './data/'
-input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '.mat'
-# input_file = input_filepath + 'result_conste_11.mat'
+input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '_' + p + .mat
+# input_file = input_filepath + 'result_conste_1.mat'
 
 data = loadmat(input_file)
 evm = data['evm']
@@ -76,7 +77,7 @@ imag = data['imag'][0]
 output_format = 'pdf'
 
 output_filepath = './fig/'
-output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod
+output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod + '_' + p
 
 ################################################################################
 # Print EVM info
@@ -112,7 +113,7 @@ for i in ref_symbols[mod]['I']:
 
 # Plot the reference
 for r in ref:
-    plt.scatter(*r, facecolors='black', zorder=15)
+    plt.scatter(*r, facecolors='tab:red', edgecolors='black', linewidth=markeredgewidth, zorder=15)
 
 # Plot the constellation
 if chan == 'SISO':
