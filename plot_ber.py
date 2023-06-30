@@ -22,7 +22,7 @@ def get_marker(pol):
     #     marker = '^'
     return marker
 
-def get_color(mod):
+def get_color(pol):
     ''' color = 'tab:blue'
               'tab:orange'
               'tab:green'
@@ -41,18 +41,18 @@ def get_color(mod):
     #     color = 'tab:red'
 
     color = 'tab:green'
-    if mod == '16QAM':
+    if pol == 'H':
         color = 'tab:blue'
-    if mod == '64QAM':
+    if pol == 'V':
         color = 'tab:orange'
     return color
 
-def get_linestyle(pol):
-    ls = '--'
-    if pol == 'H':
-        ls = '-'
-    if pol == 'V':
+def get_linestyle(mod):
+    ls = '-'
+    if mod == '16QAM':
         ls = ':'
+    if mod == '64QAM':
+        ls = '--'
     return ls
 
 ################################################################################
@@ -66,18 +66,21 @@ def get_linestyle(pol):
 plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
 plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
-plt.rc('legend', fontsize=17)    # legend fontsize
+plt.rc('legend', fontsize=16)    # legend fontsize
 # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
 FIG_SIZE_H = 4.5
 
+markeredgecolor='black'
+markeredgewidth=2
+
 plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
-plt.rc('lines', linewidth=3)
-plt.rc('lines', markersize=10)
-plt.rc('lines', markeredgecolor='black')
-plt.rc('lines', markeredgewidth=2)
+plt.rc('lines', linewidth=5)
+plt.rc('lines', markersize=15)
+plt.rc('lines', markeredgecolor=markeredgecolor)
+plt.rc('lines', markeredgewidth=markeredgewidth)
 
 ################################################################################
 # I/O format
@@ -87,8 +90,8 @@ plt.rc('lines', markeredgewidth=2)
 # Input
 #
 
-# chan_type = 'MIMO'
-chan_type = 'SISO'
+chan_type = 'MIMO'
+# chan_type = 'SISO'
 
 input_filepath = './data/'
 input_fileprefix = input_filepath + 'result_' + chan_type
@@ -199,10 +202,10 @@ for mcs_idx in range(num_mcs):
         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
         cr = code_rate[mcs_idx % 3]
         marker = get_marker(p) # marker: o, x, s, ^
-        color = get_color(mod) # color: default scheme
-        line = get_linestyle(p) # line: -, --, :
+        color = get_color(p) # color: default scheme
+        line = get_linestyle(mod) # line: -, --, :
         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
-        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+        label = mod + '-' + p # + ': ' + mod + '-0.' + cr
 
         snr = snr_v if p == 'V' else snr_h
         ber = ber_v if p == 'V' else ber_h
@@ -226,10 +229,8 @@ for mcs_idx in range(num_mcs):
         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
         cr = code_rate[mcs_idx % 3]
         marker = get_marker(p) # marker: o, x, s, ^
-        color = get_color(mod) # color: default scheme
-        line = get_linestyle(p) # line: -, --, :
-        # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
-        label = 'MCS-' + str(mcs_idx+1) + '-' + p # + ': ' + mod + '-0.' + cr
+        color = get_color(p) # color: default scheme
+        line = get_linestyle(mod) # line: -, --, :
 
         snr = snr_v if p == 'V' else snr_h
         ber = ber_v if p == 'V' else ber_h
@@ -240,9 +241,9 @@ for mcs_idx in range(num_mcs):
                        linestyle='-',
                        marker=marker,
                        color=color,
-                       edgecolors='black',
-                       linewidth=1.5,
-                       zorder=5)
+                       edgecolors=markeredgecolor,
+                       linewidth=markeredgewidth,
+                       zorder=10)
 
 plt.yscale('symlog', linthresh=1e-4)
 plt.xlim(0, 35)
