@@ -25,10 +25,10 @@ def kilos(x, pos):
 
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
-plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
-plt.rc('legend', fontsize=16)    # legend fontsize
+plt.rc('axes', labelsize=28)     # fontsize of the x and y labels
+plt.rc('xtick', labelsize=24)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=24)    # fontsize of the tick labels
+# plt.rc('legend', fontsize=16)    # legend fontsize
 # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
@@ -47,8 +47,8 @@ plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 # Input
 #
 
-ul = True
-# ul = False
+# ul = True
+ul = False
 
 input_filepath = './data/'
 if ul:
@@ -91,14 +91,14 @@ binwidth = 500
 l_bound = 90000 if ul else -100000
 h_bound = 100000 if ul else -90000
 n, bins, _ = plt.hist(cfo, bins=range(l_bound, h_bound, binwidth), density=True,
-                      color='white',
+                    #   color='white',
                       edgecolor=edgecolor,
                       linewidth=2,
                       zorder=10)
 
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
-# plt.xlim(10, 35)
+plt.xlim(l_bound, h_bound+1)
 plt.ylim(0, 1e-3)
 # plt.yticks(np.arange(0, 11, 5))
 plt.xticks(np.arange(l_bound, h_bound+1, step=2500))

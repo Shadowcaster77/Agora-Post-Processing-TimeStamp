@@ -12,18 +12,18 @@ import numpy as np
 # Functions for plot attributes
 ################################################################################
 
-def get_marker(pol):
+def get_marker(mod):
     # marker = ['o', '^', 'x']
     marker = 'x'
-    if pol == 'H':
-        marker = 'o'
-    if pol == 'V':
-        marker = '^'
-
-    # if mod == '16QAM':
+    # if pol == 'H':
     #     marker = 'o'
-    # if mod == '64QAM':
+    # if pol == 'V':
     #     marker = '^'
+
+    if mod == '16QAM':
+        marker = 'o'
+    if mod == '64QAM':
+        marker = '^'
     return marker
 
 def get_color(pol):
@@ -51,11 +51,11 @@ def get_color(pol):
         color = 'tab:orange'
     return color
 
-def get_linestyle(mod):
-    ls = '-'
-    if mod == '16QAM':
-        ls = ':'
-    if mod == '64QAM':
+def get_linestyle(pol):
+    ls = ':'
+    if pol == 'H':
+        ls = '-'
+    if pol == 'V':
         ls = '--'
     return ls
 
@@ -70,7 +70,7 @@ def get_linestyle(mod):
 plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
 plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
-plt.rc('legend', fontsize=16)    # legend fontsize
+plt.rc('legend', fontsize=18)    # legend fontsize
 # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
@@ -81,8 +81,8 @@ markeredgecolor='black'
 markeredgewidth=2
 
 # plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
-plt.rc('lines', linewidth=5)
-plt.rc('lines', markersize=15)
+plt.rc('lines', linewidth=3)
+plt.rc('lines', markersize=12)
 # plt.rc('lines', markeredgecolor=markeredgecolor)
 # plt.rc('lines', markeredgewidth=markeredgewidth)
 
@@ -94,8 +94,8 @@ plt.rc('lines', markersize=15)
 # Input
 #
 
-chan_type = 'MIMO'
-# chan_type = 'SISO'
+# chan_type = 'MIMO'
+chan_type = 'SISO'
 
 input_filepath = './data/'
 input_fileprefix = input_filepath + 'result_' + chan_type
@@ -129,7 +129,7 @@ mod_t = ['16QAM', '64QAM'] # modulation type
 pol = ['H', 'V'] # polarization
 code_rate = ['333', '500', '666'] # n/1000
 snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
-mcs = [3, 6]
+mcs = [1, 4]
 
 num_mcs = len(snr_v)
 num_snr = len(snr_v[0])
@@ -205,11 +205,11 @@ for mcs_idx in range(num_mcs):
 
         mod = mod_t[0] if mcs_idx < 3 else mod_t[1]
         cr = code_rate[mcs_idx % 3]
-        marker = get_marker(p) # marker: o, x, s, ^
+        marker = get_marker(mod) # marker: o, x, s, ^
         color = get_color(p) # color: default scheme
-        line = get_linestyle(mod) # line: -, --, :
+        line = get_linestyle(p) # line: -, --, :
         # label = 'MCS' + str(mcs_idx+1) + ': ' + mod + '-' + pol[0] + '-0.' + cr
-        label = mod + '-' + p # + ': ' + mod + '-0.' + cr
+        label = mod + ', ' + p + '-pol' # + ': ' + mod + '-0.' + cr
 
         snr = snr_v if p == 'V' else snr_h
         ber = ber_v if p == 'V' else ber_h
@@ -227,9 +227,9 @@ for mcs_idx in range(num_mcs):
                      color=color)
 
 plt.yscale('symlog', linthresh=1e-4)
-plt.xlim(0, 35)
+plt.xlim(5, 35)
 plt.ylim(top=1)
-plt.xticks(np.arange(0, 36, step=5))
+plt.xticks(np.arange(5, 36, step=5))
 
 ## Modify y-axis labels
 y_ticks = ax.get_yticks()
@@ -243,7 +243,7 @@ ax.set_yticklabels(y_labels)
 plt.xlabel('SNR (dB)')
 plt.ylabel('BER', labelpad=-20) # move axis title closer to the axis
 # plt.title('BER vs SNR')
-plt.legend(loc='lower left')
+plt.legend(loc='center right')
 plt.grid(True, which='both', ls='-')
 plt.savefig(output_fileprefix + '_BER.' + output_format, format=output_format, bbox_inches='tight')
 plt.clf()

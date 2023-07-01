@@ -22,9 +22,9 @@ mod_type = ['16QAM', '64QAM'] # modulation type
 # code_rate = ['333', '500', '666'] # n/1000
 # snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
 
-chan = chan_type[1]
-p = pol[0]
-mod = mod_type[1]
+chan = 'MIMO'
+p = 'V'
+mod = '64QAM'
 
 ################################################################################
 # Font settings: tick size, linewidth, marker size
@@ -32,19 +32,24 @@ mod = mod_type[1]
 
 # Font sizes
 
+titlesize=36
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
-plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
-plt.rc('legend', fontsize=20)    # legend fontsize
+plt.rc('axes', labelsize=32)     # fontsize of the x and y labels
+plt.rc('xtick', labelsize=32)    # fontsize of the tick labels
+plt.rc('ytick', labelsize=32)    # fontsize of the tick labels
+# plt.rc('legend', fontsize=20)    # legend fontsize
 # plt.rc('figure', titlesize=20)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 5.8
 FIG_SIZE_H = 6
 
-markeredgecolor='tab:blue'
+if chan == 'SISO' and p == 'H':
+    markeredgecolor = 'tab:blue'
+elif chan == 'SISO' and p == 'V':
+    markeredgecolor = 'tab:orange'
+
 markeredgewidth=2
 
 plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
@@ -164,13 +169,15 @@ step = 0.5
 
 plt.xlim(l_bound, h_bound)
 plt.ylim(l_bound, h_bound)
-plt.xticks(np.arange(l_bound, h_bound + 0.01, step))
-plt.yticks(np.arange(l_bound, h_bound + 0.01, step))
+plt.xticks(np.arange(l_bound, h_bound + 0.01, step), minor=True)
+plt.yticks(np.arange(l_bound, h_bound + 0.01, step), minor=True) # Minor tick for grid
+plt.xticks([-1, 0, 1])
+plt.yticks([-1, 0, 1]) # Major tick: with number labeled
 # plt.title('EVM = {:.2%}'.format(evm_read), fontsize=28)
-plt.title('EVM = {:.2%}'.format(evm_cal), fontsize=28)
+plt.title('EVM = {:.2%}'.format(evm_cal), fontsize=titlesize)
 plt.xlabel('I')
 plt.ylabel('Q')
-plt.grid()
+plt.grid(which='both',)
 plt.savefig(output_fileprefix + '.' + output_format,
             format=output_format,
             bbox_inches='tight')

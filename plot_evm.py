@@ -82,7 +82,7 @@ markeredgecolor='black'
 markeredgewidth=2
 
 plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
-plt.rc('lines', linewidth=5)
+plt.rc('lines', linewidth=3)
 plt.rc('lines', markersize=15)
 # plt.rc('lines', markeredgecolor=markeredgecolor)
 # plt.rc('lines', markeredgewidth=markeredgewidth)
@@ -205,7 +205,7 @@ for mod in mod_type:
             marker = get_marker(chan) # marker: o, x, s, ^
             color = get_color(p) # color: default scheme
             line = get_linestyle(p) # line: -, --, :
-            label = p + '-pol, ' + chan
+            label = chan + ', ' + p + '-pol'
 
             snr = data[mod][chan][p]['snr']
             evm = data[mod][chan][p]['evm']
@@ -214,11 +214,11 @@ for mod in mod_type:
     
     # Standard EVM
     evm_req = get_evm_req(mod)
-    plt.axhline(y = evm_req, color = 'r', linestyle = '--')
+    plt.axhline(y = evm_req, color = 'r', linestyle = '--', zorder=0)
 
-    plt.xlim(10, 35)
+    plt.xlim(5, 35)
     plt.ylim(0, 50)
-    plt.xticks(np.arange(10, 36, step=5))
+    plt.xticks(np.arange(5, 36, step=5))
     plt.xlabel('SNR (dB)')
     plt.ylabel('EVM (%)')
     # plt.title('EVM vs SNR')
