@@ -63,7 +63,7 @@ plt.rc('lines', markersize=10)
 # Input
 #
 
-input_filepath = './data/'
+input_filepath = '../data/'
 if chan == 'MIMO':
     input_file = input_filepath + 'result_conste_' + chan + '_' + mod + '.mat'
 elif chan == 'SISO':
@@ -83,7 +83,7 @@ imag = data['imag'][0]
 # output_format = 'svg'
 output_format = 'pdf'
 
-output_filepath = './fig/'
+output_filepath = '../fig/'
 if chan == 'MIMO':
     output_fileprefix = output_filepath + 'conste_' + chan + '_' + mod
 elif chan == 'SISO':

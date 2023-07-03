@@ -97,7 +97,7 @@ plt.rc('lines', markersize=12)
 # chan = 'MIMO'
 chan = 'SISO'
 
-input_filepath = './data/'
+input_filepath = '../data/'
 input_fileprefix = input_filepath + 'result_' + chan
 
 data_v = loadmat(input_fileprefix + '_V.mat')
@@ -118,7 +118,7 @@ ber_h = data_h['berList']
 # output_format = 'svg'
 output_format = 'pdf'
 
-output_filepath = './fig/'
+output_filepath = '../fig/'
 output_fileprefix = output_filepath + chan
 
 ################################################################################

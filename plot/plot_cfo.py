@@ -49,7 +49,7 @@ edgecolor='black'
 # ul = True
 ul = False
 
-input_filepath = './data/'
+input_filepath = '../data/'
 if ul:
     input_filename = 'CFO_TX2_RX3_trial1.mat' # uplink
 else:
@@ -67,7 +67,7 @@ cfo = data['cfoList'][0] # data is double-encapsulated
 # output_format = 'svg'
 output_format = 'pdf'
 
-output_filepath = './fig/'
+output_filepath = '../fig/'
 output_fileprefix = output_filepath
 
 ################################################################################

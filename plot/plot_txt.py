@@ -40,12 +40,12 @@ def get_linestyle(mod):
 # Plot settings
 ################################################################################
 
-path = './WinTech-H/'
+path = '../WinTech-H/'
 mod_t = ['16QAM', '64QAM'] # modulation type
 pol = ['H', 'V'] # polarization
 code_rate = ['333', '500', '666'] # n/1000
 snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
-o_filename = 'evm_vs_snr.png'
+o_filename = '../fig/evm_vs_snr.png'
 # o_filename = 'evm_vs_snr.svg'
 
 

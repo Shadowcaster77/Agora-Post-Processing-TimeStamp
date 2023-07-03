@@ -115,7 +115,7 @@ mcs = [3, 6] # Target MCS to plot
 # Input
 #
 
-input_filepath = './data/'
+input_filepath = '../data/'
 input_fileprefix = input_filepath + 'result_'
 
 #
@@ -126,7 +126,7 @@ input_fileprefix = input_filepath + 'result_'
 # output_format = 'svg'
 output_format = 'pdf'
 
-output_filepath = './fig/'
+output_filepath = '../fig/'
 
 ################################################################################
 # Read data & pre-processing
