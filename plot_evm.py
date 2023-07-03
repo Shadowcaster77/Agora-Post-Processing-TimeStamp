@@ -66,13 +66,13 @@ def get_evm_req(mod):
 
 # Font sizes
 
+titlesize=28
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
 plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
 plt.rc('legend', fontsize=20)    # legend fontsize
-# plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
@@ -211,6 +211,10 @@ for mod in mod_type:
             evm = data[mod][chan][p]['evm']
 
             plt.plot(snr, evm, linestyle=line, marker=marker, label=label, color=color)
+            # if chan == 'MIMO' and mod == '64QAM':
+            #     print(snr)
+            #     print(evm)
+            #     print('--')
     
     # Standard EVM
     evm_req = get_evm_req(mod)
@@ -221,7 +225,7 @@ for mod in mod_type:
     plt.xticks(np.arange(5, 36, step=5))
     plt.xlabel('SNR (dB)')
     plt.ylabel('EVM (%)')
-    # plt.title('EVM vs SNR')
+    plt.title(mod, fontsize=titlesize)
     plt.legend()
     plt.grid()
     plt.savefig(output_filepath + 'EVM_' + mod + '.' + output_format,

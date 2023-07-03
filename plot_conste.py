@@ -39,7 +39,6 @@ plt.rc('axes', labelsize=32)     # fontsize of the x and y labels
 plt.rc('xtick', labelsize=32)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=32)    # fontsize of the tick labels
 # plt.rc('legend', fontsize=20)    # legend fontsize
-# plt.rc('figure', titlesize=20)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 5.8

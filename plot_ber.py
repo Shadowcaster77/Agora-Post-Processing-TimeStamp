@@ -65,13 +65,13 @@ def get_linestyle(pol):
 
 # Font sizes
 
+titlesize=28
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=24)     # fontsize of the x and y labels
 plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
 plt.rc('legend', fontsize=18)    # legend fontsize
-# plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
@@ -94,11 +94,11 @@ plt.rc('lines', markersize=12)
 # Input
 #
 
-# chan_type = 'MIMO'
-chan_type = 'SISO'
+# chan = 'MIMO'
+chan = 'SISO'
 
 input_filepath = './data/'
-input_fileprefix = input_filepath + 'result_' + chan_type
+input_fileprefix = input_filepath + 'result_' + chan
 
 data_v = loadmat(input_fileprefix + '_V.mat')
 data_h = loadmat(input_fileprefix + '_H.mat')
@@ -119,7 +119,7 @@ ber_h = data_h['berList']
 output_format = 'pdf'
 
 output_filepath = './fig/'
-output_fileprefix = output_filepath + chan_type
+output_fileprefix = output_filepath + chan
 
 ################################################################################
 # Param settings
@@ -129,7 +129,7 @@ mod_t = ['16QAM', '64QAM'] # modulation type
 pol = ['H', 'V'] # polarization
 code_rate = ['333', '500', '666'] # n/1000
 snr_ideal = ['5', '10', '13', '15', '20', '25', '30']
-mcs = [1, 4]
+mcs = [3, 6]
 
 num_mcs = len(snr_v)
 num_snr = len(snr_v[0])
@@ -242,7 +242,7 @@ ax.set_yticklabels(y_labels)
 # plt.gca().yaxis.set_minor_locator(plt.LogLocator(base=10, subs='all', numticks=10)) # minor grid
 plt.xlabel('SNR (dB)')
 plt.ylabel('BER', labelpad=-20) # move axis title closer to the axis
-# plt.title('BER vs SNR')
+plt.title(chan, fontsize=titlesize)
 plt.legend(loc='center right')
 plt.grid(True, which='both', ls='-')
 plt.savefig(output_fileprefix + '_BER.' + output_format, format=output_format, bbox_inches='tight')

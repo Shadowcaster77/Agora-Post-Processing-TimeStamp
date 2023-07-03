@@ -23,6 +23,7 @@ def kilos(x, pos):
 
 # Font sizes
 
+titlesize = 28
 # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
 # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
 plt.rc('axes', labelsize=28)     # fontsize of the x and y labels
@@ -33,11 +34,9 @@ plt.rc('ytick', labelsize=24)    # fontsize of the tick labels
 # plt.rcParams.update({'font.size': 16})
 
 FIG_SIZE_W = 6
-FIG_SIZE_H = 4.5
+FIG_SIZE_H = 6
 
 edgecolor='black'
-
-plt.figure(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 
 ################################################################################
 # I/O format
@@ -82,7 +81,7 @@ print('Average CFO = {} Hz'.format(avg_cfo))
 # Plot CFO
 ################################################################################
 
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 formatter = FuncFormatter(kilos)
 ax.xaxis.set_major_formatter(formatter)
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -102,7 +101,8 @@ plt.xlim(l_bound, h_bound+1)
 plt.ylim(0, 1e-3)
 # plt.yticks(np.arange(0, 11, 5))
 plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
-# plt.title(input_filename)
+title = 'Uplink, UE to BS' if ul else 'Downlink, BS to UE'
+plt.title(title, fontsize=titlesize)
 plt.xlabel('CFO (kHz)')
 plt.ylabel('Probability Density')
 plt.grid()
