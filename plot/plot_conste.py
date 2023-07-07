@@ -30,6 +30,9 @@ mod = '64QAM'
 # Font settings: tick size, linewidth, marker size
 ################################################################################
 
+# Enable comic style
+# plt.xkcd()
+
 # Font sizes
 
 titlesize=36

@@ -63,6 +63,9 @@ def get_linestyle(pol):
 # Font settings: tick size, linewidth, marker size
 ################################################################################
 
+# Enable comic style
+# plt.xkcd()
+
 # Font sizes
 
 titlesize=28

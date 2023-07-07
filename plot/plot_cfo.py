@@ -21,6 +21,9 @@ def kilos(x, pos):
 # Font settings: tick size, linewidth, marker size
 ################################################################################
 
+# Enable comic style
+# plt.xkcd()
+
 # Font sizes
 
 titlesize = 28
