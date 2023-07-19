@@ -1,0 +1,7 @@
+# figures
+*.png
+*.svg
+*.pdf
+
+# data
+*.mat
