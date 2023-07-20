@@ -1,5 +1,8 @@
 import matplotlib.pyplot as plt
-import average_EVM_SNR
+import sys
+
+sys.path.append('..')
+from python import average_EVM_SNR
 
 def get_evm_snr_seq(mod, pol, code_rate, snr_ideal):
     snr = []
@@ -40,7 +43,7 @@ def get_linestyle(mod):
 # Plot settings
 ################################################################################
 
-path = '../WinTech-H/'
+path = '../data/wintech/WinTech-H/'
 mod_t = ['16QAM', '64QAM'] # modulation type
 pol = ['H', 'V'] # polarization
 code_rate = ['333', '500', '666'] # n/1000
