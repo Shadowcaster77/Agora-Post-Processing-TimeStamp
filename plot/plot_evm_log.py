@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import sys
 
 sys.path.append('..')
-from python import average_EVM_SNR
+from python import read_avg_evm_snr
 
 def get_evm_snr_seq(mod, pol, code_rate, snr_ideal):
     snr = []
@@ -16,7 +16,7 @@ def get_evm_snr_seq(mod, pol, code_rate, snr_ideal):
             _evm = 6.276
             _snr = 25 # ideal value
         else:
-            _evm, _snr = average_EVM_SNR.avg_evm_snr(filename=file_path)
+            _evm, _snr = read_avg_evm_snr.avg_evm_snr(filename=file_path)
 
         snr.append(_snr)
         evm.append(_evm)

@@ -1,3 +1,11 @@
+"""
+Script Name: read_proc_time_all.py
+Author: Tom, cstandy
+Description: Read from Agora's stdout screen log and plot the processing time
+             for each pipeline stage. This script reads all the frames and
+             should be used when the number of frames is less than 200.
+"""
+
 import regex as re
 from optparse import OptionParser
 
