@@ -145,11 +145,9 @@ def five9_proc_time(filename):
     total_time, fft_time, csi_time, bw_time, demul_time, decode_time = proc_time(filename=filename)
 
     # Sort the frame proc time
-    sorted_total_time = sorted(total_time, reverse=True)
+    sorted_total_time = sorted(total_time)
     num_frames = len(total_time)
     five9_idx = int(num_frames * 0.99999)
-    print(five9_idx)
-    print(num_frames)
 
     # Handle exceptions
     if five9_idx <= 0:
@@ -169,11 +167,9 @@ def five9_proc_time_trimmed(filename, thres=THRES):
     total_time, fft_time, csi_time, bw_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
 
     # Sort the frame proc time
-    sorted_total_time = sorted(total_time, reverse=True)
+    sorted_total_time = sorted(total_time)
     num_frames = len(total_time)
     five9_idx = int(num_frames * 0.99999)
-    print(five9_idx)
-    print(num_frames)
 
     # Handle exceptions
     if five9_idx <= 0:
