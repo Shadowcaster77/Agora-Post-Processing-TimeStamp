@@ -1,7 +1,7 @@
 """
-Script Name: read_proc_time.py
+Script Name: read_cpu_time.py
 Author: Tom, cstandy
-Description: Read from Agora's stdout screen log and plot the processing time
+Description: Read from Agora's stdout screen log and print the processing time
              for each pipeline stage.
 """
 
