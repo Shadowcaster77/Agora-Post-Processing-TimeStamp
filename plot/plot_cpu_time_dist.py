@@ -85,7 +85,7 @@ n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
 plt.xlim(l_bound, h_bound)
-plt.ylim(0, 5e3)
+plt.ylim(0, 6e3)
 # plt.yticks(np.arange(0, 11, 5))
 # plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
 title = 'CPU time distribution'
