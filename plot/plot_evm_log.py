@@ -1,3 +1,10 @@
+"""
+This script plot the evm vs. snr figure across different 5G MCS. It calls the
+read api to read from the data under data/.
+
+Author: cstandy
+"""
+
 import matplotlib.pyplot as plt
 import sys
 
