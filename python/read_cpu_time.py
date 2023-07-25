@@ -6,6 +6,8 @@ Description: Read from Agora's stdout screen log and print the processing time
 """
 
 import regex as re
+import numpy as np
+import math
 from optparse import OptionParser
 
 THRES = 1500
@@ -181,21 +183,79 @@ def five9_proc_time_trimmed(filename, thres=THRES):
     return total_time[index], fft_time[index], csi_time[index],\
            bw_time[index], demul_time[index], decode_time[index]
 
+# debug funcs
+def check_mismatch(filename):
+    print('Debugging from log: {}'.format(filename))
+
+    total_time, fft_time, csi_time, bw_time, demul_time, decode_time = proc_time(filename=filename)
+
+    total_np = np.array(total_time)
+    fft_np = np.array(fft_time)
+    csi_np = np.array(csi_time)
+    bw_np = np.array(bw_time)
+    demul_np = np.array(demul_time)
+    decode_np = np.array(decode_time)
+
+    # print(total_np.size)
+    # print(fft_np.size)
+    # print(csi_np.size)
+    # print(bw_np.size)
+    # print(demul_np.size)
+    # print(decode_np.size)
+
+    num_frames = len(total_time)
+    sum_np = fft_np + csi_np + bw_np + demul_np + decode_np
+
+    # Hard comparison
+    hard_mismatch = np.sum(total_np != sum_np)
+    print('num_frames = {}'.format(num_frames))
+    print('---')
+    print('Hard Mismatch:')
+    print(' . num of hard mismatch = {}'.format(hard_mismatch))
+    print(' . percentage of hard mismatch = {:.2%}'.format(hard_mismatch/num_frames))
+
+    # Loose comparison
+    loose_mismatch = 0
+    abs_tol = 0.001
+    for i in range(num_frames):
+        if not math.isclose(total_np[i], sum_np[i], abs_tol=abs_tol):
+            loose_mismatch = loose_mismatch + 1
+            # print('frame idx = {}'.format(i))
+            
+            # print(total_np[i])
+            # print(fft_np[i])
+            # print(csi_np[i])
+            # print(bw_np[i])
+            # print(demul_np[i])
+            # print(decode_np[i])
+            # print(sum[i])
+            # print('---')
+    print('---')
+    print('Loose Mismatch: thres = {}'.format(abs_tol))
+    print(' . num of loose match = {}'.format(loose_mismatch))
+    print(' . percentage of loose mismatch = {:.2%}'.format(loose_mismatch/num_frames))
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
     parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, five9s, default=max", default='max')
+    parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Print debug message for sanity check", default=False)
     (options, args) = parser.parse_args()
     filename = options.file_name
     trim = options.trim
     stat = options.stat
     thres = options.thres
+    debug = options.debug
 
     # Handle input error
     if not filename:
         parser.error('Must specify log filename with -f or --file, for more options, use -h')
+
+    if debug:
+        check_mismatch(filename=filename)
+        exit(0)
 
     if trim:
         if stat == 'max':
