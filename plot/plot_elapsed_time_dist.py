@@ -48,7 +48,8 @@ edgecolor='black'
 # Input
 #
 log_path = '../log/'
-log_name = '2023-07-19_16-35-36.log'
+# log_name = '2023-07-19_16-35-36.log' # deferred log
+log_name = '2023-07-25_18-21-23.log' # normal log
 print('Reading from log: {}...'.format(log_name))
 
 elapsed_time_ls = read_elapsed_time.elapsed_time(log_path+log_name)
@@ -58,9 +59,9 @@ elapsed_time_np = np.array(elapsed_time_ls)
 # Output
 #
 
-# output_format = 'png'
+output_format = 'png'
 # output_format = 'svg'
-output_format = 'pdf'
+# output_format = 'pdf'
 
 output_filepath = '../fig/'
 
@@ -71,10 +72,13 @@ output_filepath = '../fig/'
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-binwidth = 1
-l_bound = 0
-h_bound = 60
-n, bins, _ = plt.hist(elapsed_time_np, bins=range(l_bound, h_bound, binwidth),
+binwidth = 0.01
+l_bound = 1.2
+h_bound = 1.71
+# binwidth = 0.01
+# l_bound = min(elapsed_time_np)
+# h_bound = max(elapsed_time_np)
+n, bins, _ = plt.hist(elapsed_time_np, bins=np.arange(l_bound, h_bound, binwidth),
                     #   density=True,
                     #   color='white',
                       edgecolor=edgecolor,
@@ -83,10 +87,10 @@ n, bins, _ = plt.hist(elapsed_time_np, bins=range(l_bound, h_bound, binwidth),
 
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
-plt.xlim(l_bound, h_bound+1)
+plt.xlim(l_bound, h_bound)
 plt.ylim(0, 5e3)
 # plt.yticks(np.arange(0, 11, 5))
-# plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
+plt.xticks(np.arange(l_bound, h_bound, step=0.1))
 title = 'Elapsed time distribution'
 plt.title(title, fontsize=titlesize)
 plt.xlabel('elapsed time (ms)')
@@ -96,3 +100,18 @@ plt.savefig(output_filepath + 'elapsed_time_dist.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
+
+
+################################################################################
+# Print statistics
+################################################################################
+
+min_elapsed_time = min(elapsed_time_np)
+max_elapsed_time = max(elapsed_time_np)
+avg_elapsed_time = np.mean(elapsed_time_np)
+five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
+
+print(' . min elapsed time = {:.2f}'.format(min_elapsed_time))
+print(' . max elapsed time = {:.2f}'.format(max_elapsed_time))
+print(' . avg elapsed time = {:.2f}'.format(avg_elapsed_time))
+print(' . 99.999% elapsed time = {:.2f}'.format(five9_elapsed_time))

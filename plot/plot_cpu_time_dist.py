@@ -48,10 +48,11 @@ edgecolor='black'
 # Input
 #
 log_path = '../log/'
-log_name = '2023-07-19_16-35-36.log'
+# log_name = '2023-07-19_16-35-36.log' # deferred log
+log_name = '2023-07-25_18-21-23.log' # normal log
 print('Reading from log: {}...'.format(log_name))
 
-cpu_time_ls, _, _, _, _, _ = read_cpu_time.proc_time(log_path+log_name)
+cpu_time_ls = read_cpu_time.proc_time(log_path+log_name)[0]
 # cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_name)
 cpu_time_np = np.array(cpu_time_ls)
 
@@ -59,22 +60,25 @@ cpu_time_np = np.array(cpu_time_ls)
 # Output
 #
 
-# output_format = 'png'
+output_format = 'png'
 # output_format = 'svg'
-output_format = 'pdf'
+# output_format = 'pdf'
 
 output_filepath = '../fig/'
 
 ################################################################################
-# Plot 
+# Plot
 ################################################################################
 
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
 binwidth = 0.01
-l_bound = min(cpu_time_np)
-h_bound = max(cpu_time_np)
+l_bound = 1.2
+h_bound = 1.71
+# binwidth = 0.01
+# l_bound = min(cpu_time_np)
+# h_bound = max(cpu_time_np)
 n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
                     #   density=True,
                     #   color='white',
@@ -85,9 +89,9 @@ n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
 plt.xlim(l_bound, h_bound)
-plt.ylim(0, 6e3)
+plt.ylim(0, 5e3)
 # plt.yticks(np.arange(0, 11, 5))
-# plt.xticks(np.arange(l_bound, h_bound+1, step=2500))
+plt.xticks(np.arange(l_bound, h_bound, step=0.1))
 title = 'CPU time distribution'
 plt.title(title, fontsize=titlesize)
 plt.xlabel('cpu time (ms)')
@@ -97,3 +101,17 @@ plt.savefig(output_filepath + 'cpu_time_dist.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
+
+################################################################################
+# Print statistics
+################################################################################
+
+min_cpu_time = min(cpu_time_np)
+max_cpu_time = max(cpu_time_np)
+avg_cpu_time = np.mean(cpu_time_np)
+five9_cpu_time = read_cpu_time.five9_proc_time(log_path+log_name)[0]
+
+print(' . min cpu time = {:.2f}'.format(min_cpu_time))
+print(' . max cpu time = {:.2f}'.format(max_cpu_time))
+print(' . avg cpu time = {:.2f}'.format(avg_cpu_time))
+print(' . 99.999% elapsed time = {:.2f}'.format(five9_cpu_time))
