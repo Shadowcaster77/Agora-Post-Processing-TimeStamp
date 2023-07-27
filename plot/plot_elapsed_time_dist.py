@@ -113,6 +113,7 @@ max_elapsed_time = max(elapsed_time_np)
 avg_elapsed_time = np.mean(elapsed_time_np)
 five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
 
+print(' . num of points = {}'.format(len(elapsed_time_ls)))
 print(' . min elapsed time = {:.2f}'.format(min_elapsed_time))
 print(' . max elapsed time = {:.2f}'.format(max_elapsed_time))
 print(' . avg elapsed time = {:.2f}'.format(avg_elapsed_time))

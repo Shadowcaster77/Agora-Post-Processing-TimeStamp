@@ -75,31 +75,20 @@ output_filepath = '../fig/'
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-binwidth = 0.01
-l_bound = 1.2
-h_bound = 1.71
-# binwidth = 0.01
-# l_bound = min(cpu_time_np)
-# h_bound = max(cpu_time_np)
-n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
-                    #   density=True,
-                    #   color='white',
-                      edgecolor=edgecolor,
-                      linewidth=2,
-                      zorder=10)
+num_samples = len(cpu_time_ls)
+cpu_time_sorted = np.sort(cpu_time_np)
+cpu_time_prob = np.arange(1, num_samples + 1) / num_samples
+plt.plot(cpu_time_sorted, cpu_time_prob,
+         marker='o',
+         linewidth=0)
 
-# print (np.sum(n*np.diff(bins))) # verify the integral is 1
-
-plt.xlim(l_bound, h_bound)
-plt.ylim(0, 5e3)
-# plt.yticks(np.arange(0, 11, 5))
-plt.xticks(np.arange(l_bound, h_bound, step=0.1))
-title = 'CPU time distribution'
+title = 'CPU Time CDF'
+plt.xlim(1, 2.5)
 plt.title(title, fontsize=titlesize)
 plt.xlabel('cpu time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'cpu_time_dist_' + log_time + '.' + output_format,
+plt.savefig(output_filepath + 'cpu_time_cdf_' + log_time + '.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()

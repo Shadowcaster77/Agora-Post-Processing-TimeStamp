@@ -1,5 +1,5 @@
 """
-This script plot the cpu time distributions.
+This script plot the elapsed time distributions.
 
 Author: cstandy
 """
@@ -10,7 +10,7 @@ import numpy as np
 import sys
 
 sys.path.append('..')
-from python import read_cpu_time
+from python import read_elapsed_time
 
 ################################################################################
 # Functions for plot attributes
@@ -54,9 +54,8 @@ log_time = '2023-07-27_13-33-53' # origin log
 log_name = log_time + '.log'
 print('Reading from log: {}...'.format(log_name))
 
-cpu_time_ls = read_cpu_time.proc_time(log_path+log_name)[0]
-# cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_name)
-cpu_time_np = np.array(cpu_time_ls)
+elapsed_time_ls = read_elapsed_time.elapsed_time(log_path+log_name)
+elapsed_time_np = np.array(elapsed_time_ls)
 
 #
 # Output
@@ -69,52 +68,44 @@ output_format = 'png'
 output_filepath = '../fig/'
 
 ################################################################################
-# Plot
+# Plot 
 ################################################################################
 
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-binwidth = 0.01
-l_bound = 1.2
-h_bound = 1.71
-# binwidth = 0.01
-# l_bound = min(cpu_time_np)
-# h_bound = max(cpu_time_np)
-n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
-                    #   density=True,
-                    #   color='white',
-                      edgecolor=edgecolor,
-                      linewidth=2,
-                      zorder=10)
+num_samples = len(elapsed_time_ls)
+elapsed_time_sorted = np.sort(elapsed_time_np)
+elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
+plt.plot(elapsed_time_sorted, elapsed_time_prob,
+         marker='o',
+         linewidth=0)
 
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
-plt.xlim(l_bound, h_bound)
-plt.ylim(0, 5e3)
-# plt.yticks(np.arange(0, 11, 5))
-plt.xticks(np.arange(l_bound, h_bound, step=0.1))
-title = 'CPU time distribution'
+plt.xlim(1, 2.5)
+title = 'Elapsed Time CDF'
 plt.title(title, fontsize=titlesize)
-plt.xlabel('cpu time (ms)')
+plt.xlabel('elapsed time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'cpu_time_dist_' + log_time + '.' + output_format,
+plt.savefig(output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
+
 
 ################################################################################
 # Print statistics
 ################################################################################
 
-min_cpu_time = min(cpu_time_np)
-max_cpu_time = max(cpu_time_np)
-avg_cpu_time = np.mean(cpu_time_np)
-five9_cpu_time = read_cpu_time.five9_proc_time(log_path+log_name)[0]
+min_elapsed_time = min(elapsed_time_np)
+max_elapsed_time = max(elapsed_time_np)
+avg_elapsed_time = np.mean(elapsed_time_np)
+five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
 
-print(' . num of points = {}'.format(len(cpu_time_ls)))
-print(' . min cpu time = {:.2f}'.format(min_cpu_time))
-print(' . max cpu time = {:.2f}'.format(max_cpu_time))
-print(' . avg cpu time = {:.2f}'.format(avg_cpu_time))
-print(' . 99.999% elapsed time = {:.2f}'.format(five9_cpu_time))
+print(' . num of points = {}'.format(len(elapsed_time_ls)))
+print(' . min elapsed time = {:.2f}'.format(min_elapsed_time))
+print(' . max elapsed time = {:.2f}'.format(max_elapsed_time))
+print(' . avg elapsed time = {:.2f}'.format(avg_elapsed_time))
+print(' . 99.999% elapsed time = {:.2f}'.format(five9_elapsed_time))
