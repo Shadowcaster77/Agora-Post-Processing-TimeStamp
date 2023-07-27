@@ -48,8 +48,10 @@ edgecolor='black'
 # Input
 #
 log_path = '../log/'
-# log_name = '2023-07-19_16-35-36.log' # deferred log
-log_name = '2023-07-25_18-21-23.log' # normal log
+# log_time = '2023-07-19_16-35-36' # deferred log
+# log_time = '2023-07-25_18-21-23' # normal log
+log_time = '2023-07-27_13-33-53' # origin log
+log_name = log_time + '.log'
 print('Reading from log: {}...'.format(log_name))
 
 elapsed_time_ls = read_elapsed_time.elapsed_time(log_path+log_name)
@@ -96,7 +98,7 @@ plt.title(title, fontsize=titlesize)
 plt.xlabel('elapsed time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'elapsed_time_dist.' + output_format,
+plt.savefig(output_filepath + 'elapsed_time_dist_' + log_time + '.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
