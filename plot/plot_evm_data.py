@@ -4,6 +4,14 @@
 # author: Chung-Hsuan Tung
 ################################################################################
 
+################################################################################
+# ACM Submission Requirement: Avoid bad font warning for Type3 font
+################################################################################
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+################################################################################
+
 import matplotlib.pyplot as plt
 from scipy.io import loadmat
 import numpy as np
@@ -231,7 +239,7 @@ for mod in mod_type:
     plt.title(mod, fontsize=titlesize)
     plt.legend()
     plt.grid()
-    plt.savefig(output_filepath + 'EVM_' + mod + '.' + output_format,
+    plt.savefig(output_filepath + 'EVM' + mod + '.' + output_format,
                 format=output_format,
                 bbox_inches='tight')
     plt.clf()
