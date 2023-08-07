@@ -4,6 +4,14 @@
 # author: Chung-Hsuan Tung
 ################################################################################
 
+################################################################################
+# ACM Submission Requirement: Avoid bad font warning for Type3 font
+################################################################################
+import matplotlib
+matplotlib.rcParams['pdf.fonttype'] = 42
+matplotlib.rcParams['ps.fonttype'] = 42
+################################################################################
+
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
 from scipy.io import loadmat
