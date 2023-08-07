@@ -28,6 +28,15 @@ Use `pipenv` as the virtual env to run this project.
 All WiNTECH results are under `data/wintech`.
 Please move the needed raw data to `data/` to generate plots.
 
+## Benchmark
+
+We also benchmark (unit test) libraries and classes used in Agora.
+So far, we primarily work on testing Armadillo, a C++ based matrix operation library.
+
+* Testing programs are under `benchmark/`.
+* To compile, run `make` under `benchmark/`.
+* To run test program, run `*.a` under `benchmark/`.
+
 ## Reference
 
 * If you have any question for this utility repo, please contact [@cstandy](https://github.com/cstandy).
