@@ -37,6 +37,11 @@ So far, we primarily work on testing Armadillo, a C++ based matrix operation lib
 * To compile, run `make` under `benchmark/`.
 * To run test program, run `*.a` under `benchmark/`.
 
+## Scripts
+
+We have some helper functions that automate running Agora.
+These scripts are placed under `script/`, but should be run along with Agora programs.
+
 ## Reference
 
 * If you have any question for this utility repo, please contact [@cstandy](https://github.com/cstandy).
