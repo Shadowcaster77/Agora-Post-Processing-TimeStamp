@@ -1,20 +1,18 @@
 #!/bin/bash
 
 ################################################################################
-# This script runs the Agora in simulation mode in multiple configurations.
-# The motivation is because 5G has multiple numerology, which has same workload
-# but different time requirement.
-# In this case, we often need to perform similar experiments to understand the
-# system performance.
+# This script runs the Agora in simulation mode in one configurations.
+# It accepts a specific config file (can be overwrite by argument) and run an
+# instance of experiment.
 #
-# Layer of iteration:
-#
-# - Traffic config: Traffic load & MCS (4 configs)
-#     - Number of cores: single-core (0) vs. multi-cores (1, 2, 4, 8, 16)
-#         - 5G Numerologies (0-3)
-#
-# - Traffic load: num of U's
-# - MCS: modulation scheme and LDPC code rate
+# For easier debug and experiemnt, this script also accepts a set of parameters
+# to put on the output filename. They are NOT related to the experiment config.
+# Those param include:
+#   - 5G Numerologies (0-3)
+#   - Traffic load: num of U's
+#   - Modulation scheme
+#   - LDPC code rate
+#   - Number of worker threads
 #
 # Copyright 2023 @cstandy
 ################################################################################
@@ -49,7 +47,7 @@ modulation="16QAM"
 
 # Function to display help
 function display_help {
-    echo "Usage: ./test_5g.sh [option]"
+    echo "Usage: ./test_sim-ul.sh [option]"
     echo "Options:"
     echo "  -u, --mu               - numerology [0-3]"
     echo "  -w, --num_worker       - number of worker threads"
@@ -58,6 +56,7 @@ function display_help {
     echo "  --conf_file            - name of config file"
     echo "  --code_rate            - code rate"
     echo "  --modulation           - modulation scheme"
+    echo "  --agora_dir            - absolute path to the directory of compiled Agora"
 }
 
 # Process command line arguments
@@ -87,6 +86,10 @@ while [[ $# -gt 0 ]]; do
             modulation="$2"
             shift 2
             ;;
+        "--agora_dir")
+            agora_dir="$2"
+            shift 2
+            ;;
         "-h" | "--help")
             display_help
             exit 0
@@ -107,14 +110,17 @@ logfile=$logpath/$(date +"%Y-%m-%d_%H-%M-%S")_u${num_uplink}_cr${code_rate}_${mo
 echo "--------------------------------------------------------------------------------"
 echo "| Config                                                                       |"
 echo "--------------------------------------------------------------------------------"
+echo "[info] Agora dir: $agora_dir"
 echo "[info] config file name: $config"
 echo "[info] output file name: $logfile"
 echo "--------------------------------------------------------------------------------"
-echo "| Variables only for output file name                                               |"
+echo "| Variables only for output file name                                          |"
 echo "--------------------------------------------------------------------------------"
 echo "[info] numerology = $mu"
 echo "[info] number of worker threads = $num_worker"
 echo "[info] number of uplink symbols = $num_uplink"
+echo "[info] LDPC code rate = $code_rate"
+echo "[info] modulation = $modulation"
 echo "--------------------------------------------------------------------------------"
 
 ################################################################################
