@@ -30,7 +30,8 @@ exe=$build_dir/agora
 user=$build_dir/sender
 data_gen_exe=$build_dir/data_generator
 # config=$agora_dir/files/config/ci/tddconfig-sim-ul.json
-config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2.json
+# config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2.json
+config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2-autogen.json
 logpath=$agora_dir/log
 
 ################################################################################
@@ -38,8 +39,9 @@ logpath=$agora_dir/log
 ################################################################################
 mu=0
 num_worker=0
-config_idx=0
-timeout_duration=20
+num_uplink=3
+code_rate="0p333"
+modulation="16QAM"
 
 ################################################################################
 # Override variable for command
@@ -51,8 +53,11 @@ function display_help {
     echo "Options:"
     echo "  -u, --mu               - numerology [0-3]"
     echo "  -w, --num_worker       - number of worker threads"
-    echo "  -c, --config_idx       - config index [0-3]"
+    echo "  --num_uplink           - number of uplink symbols [0-13]"
     echo "  -h, --help             - display this help message"
+    echo "  --conf_file            - name of config file"
+    echo "  --code_rate            - code rate"
+    echo "  --modulation           - modulation scheme"
 }
 
 # Process command line arguments
@@ -66,8 +71,20 @@ while [[ $# -gt 0 ]]; do
             num_worker="$2"
             shift 2
             ;;
-        "-c" | "--config_idx")
-            config_idx="$2"
+        "--num_uplink")
+            num_uplink="$2"
+            shift 2
+            ;;
+        "--conf_file")
+            config="$2"
+            shift 2
+            ;;
+        "--code_rate")
+            code_rate="$2"
+            shift 2
+            ;;
+        "--modulation")
+            modulation="$2"
             shift 2
             ;;
         "-h" | "--help")
@@ -81,7 +98,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-logfile=$logpath/$(date +"%Y-%m-%d_%H-%M-%S")_config-${config_idx}_mu${mu}_w${num_worker}.log
+logfile=$logpath/$(date +"%Y-%m-%d_%H-%M-%S")_u${num_uplink}_cr${code_rate}_${modulation}_mu${mu}_w${num_worker}.log
 
 ################################################################################
 # Print config
@@ -91,10 +108,13 @@ echo "--------------------------------------------------------------------------
 echo "| Config                                                                       |"
 echo "--------------------------------------------------------------------------------"
 echo "[info] config file name: $config"
-echo "[info] config index = $config_idx"
 echo "[info] output file name: $logfile"
+echo "--------------------------------------------------------------------------------"
+echo "| Variables only for output file name                                               |"
+echo "--------------------------------------------------------------------------------"
 echo "[info] numerology = $mu"
 echo "[info] number of worker threads = $num_worker"
+echo "[info] number of uplink symbols = $num_uplink"
 echo "--------------------------------------------------------------------------------"
 
 ################################################################################
