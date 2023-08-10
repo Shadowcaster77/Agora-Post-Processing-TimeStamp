@@ -23,14 +23,6 @@
 ################################################################################
 cur_dir=$(pwd)
 agora_dir=/home/ct297/workspace/agora_single-core-sim/
-build_dir=$agora_dir/build
-exe=$build_dir/agora
-user=$build_dir/sender
-data_gen_exe=$build_dir/data_generator
-# config=$agora_dir/files/config/ci/tddconfig-sim-ul.json
-# config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2.json
-config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2-autogen.json
-logpath=$agora_dir/log
 
 ################################################################################
 # Internal setting
@@ -101,7 +93,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-logfile=$logpath/$(date +"%Y-%m-%d_%H-%M-%S")_u${num_uplink}_cr${code_rate}_${modulation}_mu${mu}_w${num_worker}.log
+build_dir=$agora_dir/build
+exe=$build_dir/agora
+user=$build_dir/sender
+data_gen_exe=$build_dir/data_generator
+# config=$agora_dir/files/config/ci/tddconfig-sim-ul.json
+# config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2.json
+config=$agora_dir/files/config/ci/tddconfig-sim-ul-fr2-autogen.json
+logfile=$agora_dir/log/$(date +"%Y-%m-%d_%H-%M-%S")_u${num_uplink}_cr${code_rate}_${modulation}_mu${mu}_w${num_worker}.log
 
 ################################################################################
 # Print config
@@ -163,3 +162,4 @@ if ps -p $pid_bs > /dev/null; then
 fi
 
 echo "[info] All child processes have finished."
+cd $cur_dir

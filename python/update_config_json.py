@@ -12,7 +12,7 @@ from tabulate import tabulate
 
 # Input/output files
 PROJ_PATH = '/home/ct297/workspace/agora_single-core-sim/'
-FILE_PATH= PROJ_PATH + 'files/config/ci/'
+FILE_PATH= 'files/config/ci/'
 R_FILE_NAME = 'tddconfig-sim-ul-fr2.json'
 W_FILE_NAME = 'tddconfig-sim-ul-fr2-autogen.json'
 
@@ -108,6 +108,7 @@ if __name__ == "__main__":
     parser.add_option("-c", "--config_idx", type="int", dest="config_idx", help="Config index [0-3], default=0", default=0)
     parser.add_option("-m", "--modulation", type="string", dest="mod", help="Modulation scheme, default=16QAM", default='16QAM')
     parser.add_option("--num_uplink", type="int", dest="num_uplink", help="Number of uplink symbols [0-13], default=3", default=3)
+    parser.add_option("--agora_dir", type="string", dest="proj_path", help="Path to compiled Agora, default={}".format(PROJ_PATH), default=PROJ_PATH)
     (options, args) = parser.parse_args()
     mu = options.mu
     cr = options.cr
@@ -115,9 +116,10 @@ if __name__ == "__main__":
     num_worker = options.num_worker
     config_idx = options.config_idx
     num_uplink = options.num_uplink
+    proj_path = options.proj_path
 
-    read_json_file_path = FILE_PATH + R_FILE_NAME
-    write_json_file_path = FILE_PATH + W_FILE_NAME
+    read_json_file_path = proj_path + FILE_PATH + R_FILE_NAME
+    write_json_file_path = proj_path + FILE_PATH + W_FILE_NAME
 
     # Read the JSON data from the file
     json_str = read_json_file_as_str(read_json_file_path)
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     # Load the JSON data without comments into a dictionary
     json_data = json.loads(json_str)
 
-    # print('Read config: {}'.format(read_json_file_path))
+    print('Read config: {}'.format(read_json_file_path))
     # print_dict_as_table(json_data)
     modify_json_data(data=json_data, mu=mu, code_rate=cr, modulation=mod, num_worker=num_worker, num_uplink=num_uplink)
     print('Generate json to {}'.format(write_json_file_path))
