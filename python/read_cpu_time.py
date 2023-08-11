@@ -12,6 +12,10 @@ from optparse import OptionParser
 
 THRES = 1500
 
+################################################################################
+# Functions
+################################################################################
+
 def proc_time(filename):
     '''
     This func reads all the frames and should be used when the number of frames
@@ -38,6 +42,8 @@ def proc_time(filename):
 
     total_time = re.findall('(?<=Total:\s+)[\d\.]+', lines)
     total_time_list = list(map(float, total_time))
+
+    f.close()
 
     return total_time_list, fft_time_list, csi_time_list, bw_time_list, demul_time_list, decode_time_list
 
@@ -183,9 +189,80 @@ def five9_proc_time_trimmed(filename, thres=THRES):
     return total_time[index], fft_time[index], csi_time[index],\
            bw_time[index], demul_time[index], decode_time[index]
 
-# debug funcs
-def check_mismatch(filename):
-    print('Debugging from log: {}'.format(filename))
+################################################################################
+# Debug related func
+################################################################################
+
+def check_all_elements_identical(x):
+    return x.count(x[0]) == len(x)
+
+def check_deferred_frame(filename):
+    print('Checking if defferred frames exist...')
+
+    pattern = re.compile(r'deferring', re.IGNORECASE)
+    defferred_frame = False
+
+    with open(filename, 'r') as file:
+        for _, line in enumerate(file, start=1):
+            if pattern.search(line):
+                defferred_frame = True
+                print('[warning] Deferred frames exist!')
+                break
+
+    print('No deferred frames found.')
+    return defferred_frame
+
+def check_task_num(filename):
+    '''
+    This func reads all the frames and find the number of tasks fo each DSP
+    stage.
+    '''
+
+    print('Checking if num of tasks is identical for all frames...')
+
+    f = open(filename, 'r')
+    lines = f.read()
+
+    fft_count = re.findall('FFT \((\d+) tasks\):', lines)
+    fft_count_list = list(map(int, fft_count))
+
+    csi_count = re.findall('CSI \((\d+) tasks\):', lines)
+    csi_count_list = list(map(float, csi_count))
+
+    bw_count = re.findall('Beamweights \((\d+) tasks\):', lines)
+    bw_count_list = list(map(float, bw_count))
+
+    demul_count = re.findall('Demul \((\d+) tasks\):', lines)
+    demul_count_list = list(map(float, demul_count))
+
+    decode_count = re.findall('Decode \((\d+) tasks\):', lines)
+    decode_count_list = list(map(float, decode_count))
+
+    f.close()
+
+    num_task_error = False
+
+    if not check_all_elements_identical(fft_count_list):
+        print('[warning] Num of FFT tasks is not identical for all frames!')
+        num_task_error = True
+    if not check_all_elements_identical(csi_count_list):
+        print('[warning] Num of CSI tasks is not identical for all frames!')
+        num_task_error = True
+    if not check_all_elements_identical(bw_count_list):
+        print('[warning] Num of BW tasks is not identical for all frames!')
+        num_task_error = True
+    if not check_all_elements_identical(demul_count_list):
+        print('[warning] Num of DEMUL tasks is not identical for all frames!')
+        num_task_error = True
+    if not check_all_elements_identical(decode_count_list):
+        print('[warning] Num of DECODE tasks is not identical for all frames!')
+        num_task_error = True
+
+    return num_task_error
+
+def check_sum(filename):
+
+    print('Checking if sum of time across all section equals to total time reported...')
 
     total_time, fft_time, csi_time, bw_time, demul_time, decode_time = proc_time(filename=filename)
 
@@ -196,19 +273,15 @@ def check_mismatch(filename):
     demul_np = np.array(demul_time)
     decode_np = np.array(decode_time)
 
-    # print(total_np.size)
-    # print(fft_np.size)
-    # print(csi_np.size)
-    # print(bw_np.size)
-    # print(demul_np.size)
-    # print(decode_np.size)
-
     num_frames = len(total_time)
     sum_np = fft_np + csi_np + bw_np + demul_np + decode_np
 
+
+    print('---')
+    print(' . num_frames = {}'.format(num_frames))
+
     # Hard comparison
     hard_mismatch = np.sum(total_np != sum_np)
-    print('num_frames = {}'.format(num_frames))
     print('---')
     print('Hard Mismatch:')
     print(' . num of hard mismatch = {}'.format(hard_mismatch))
@@ -220,20 +293,27 @@ def check_mismatch(filename):
     for i in range(num_frames):
         if not math.isclose(total_np[i], sum_np[i], abs_tol=abs_tol):
             loose_mismatch = loose_mismatch + 1
-            # print('frame idx = {}'.format(i))
-            
-            # print(total_np[i])
-            # print(fft_np[i])
-            # print(csi_np[i])
-            # print(bw_np[i])
-            # print(demul_np[i])
-            # print(decode_np[i])
-            # print(sum[i])
-            # print('---')
+
     print('---')
-    print('Loose Mismatch: thres = {}'.format(abs_tol))
+    print('Loose Mismatch (thres = {}):'.format(abs_tol))
     print(' . num of loose match = {}'.format(loose_mismatch))
     print(' . percentage of loose mismatch = {:.2%}'.format(loose_mismatch/num_frames))
+    print('---')
+
+    return hard_mismatch, loose_mismatch
+
+# debug funcs
+def debug_funcs(filename):
+    print('Debugging from log: {}'.format(filename))
+    check_deferred_frame(filename=filename)
+    num_task_error = check_task_num(filename=filename)
+    if not num_task_error:
+        check_sum(filename=filename)
+
+
+################################################################################
+# Main func
+################################################################################
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -254,7 +334,7 @@ if __name__ == '__main__':
         parser.error('Must specify log filename with -f or --file, for more options, use -h')
 
     if debug:
-        check_mismatch(filename=filename)
+        debug_funcs(filename=filename)
         exit(0)
 
     if trim:
@@ -287,4 +367,3 @@ if __name__ == '__main__':
     print("* Sum of the previous = {:.3f} ms (double check)".format(sum))
     if trim:
         print("* Leading {} frames and trailing {} frames discarded".format(thres, thres))
-
