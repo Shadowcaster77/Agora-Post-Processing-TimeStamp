@@ -51,10 +51,12 @@ log_path = '../log/'
 # log_time = '2023-07-19_16-35-36' # deferred log
 # log_time = '2023-07-25_18-21-23' # normal log
 log_time = '2023-07-27_13-33-53' # origin log
-log_name = log_time + '.log'
+log_name = log_path + log_time + '.log'
+# log_name = input("Enter log path+name (default: {}): ".format(log_name)) or log_name
+log_name = sys.argv[1]
 print('Reading from log: {}...'.format(log_name))
 
-elapsed_time_ls = read_elapsed_time.elapsed_time(log_path+log_name)
+elapsed_time_ls = read_elapsed_time.elapsed_time(log_name)
 elapsed_time_np = np.array(elapsed_time_ls)
 
 #

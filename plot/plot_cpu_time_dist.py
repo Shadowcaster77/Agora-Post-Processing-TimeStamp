@@ -6,6 +6,7 @@ Author: cstandy
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from optparse import OptionParser
 import numpy as np
 import sys
 
@@ -47,14 +48,19 @@ edgecolor='black'
 #
 # Input
 #
-log_path = '../log/'
-# log_time = '2023-07-19_16-35-36' # deferred log
-# log_time = '2023-07-25_18-21-23' # normal log
-log_time = '2023-07-27_13-33-53' # origin log
-log_name = log_time + '.log'
-print('Reading from log: {}...'.format(log_name))
 
-cpu_time_ls = read_cpu_time.proc_time(log_path+log_name)[0]
+parser = OptionParser()
+parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
+(options, args) = parser.parse_args()
+filename = options.file_name
+
+# Handle input error
+if not filename:
+    parser.error('Must specify log filename with -f or --file, for more options, use -h')
+
+print('Reading from log: {}'.format(filename))
+
+cpu_time_ls = read_cpu_time.proc_time(filename)[0]
 # cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_name)
 cpu_time_np = np.array(cpu_time_ls)
 
@@ -99,7 +105,7 @@ plt.title(title, fontsize=titlesize)
 plt.xlabel('cpu time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'cpu_time_dist_' + log_time + '.' + output_format,
+plt.savefig(output_filepath + 'cpu_time_dist.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
@@ -111,7 +117,7 @@ plt.clf()
 min_cpu_time = min(cpu_time_np)
 max_cpu_time = max(cpu_time_np)
 avg_cpu_time = np.mean(cpu_time_np)
-five9_cpu_time = read_cpu_time.five9_proc_time(log_path+log_name)[0]
+five9_cpu_time = read_cpu_time.five9_proc_time(filename)[0]
 
 print(' . num of points = {}'.format(len(cpu_time_ls)))
 print(' . min cpu time = {:.2f}'.format(min_cpu_time))

@@ -240,25 +240,25 @@ def check_task_num(filename):
 
     f.close()
 
-    num_task_error = False
+    error = False
 
     if not check_all_elements_identical(fft_count_list):
         print('[warning] Num of FFT tasks is not identical for all frames!')
-        num_task_error = True
+        error = True
     if not check_all_elements_identical(csi_count_list):
         print('[warning] Num of CSI tasks is not identical for all frames!')
-        num_task_error = True
+        error = True
     if not check_all_elements_identical(bw_count_list):
         print('[warning] Num of BW tasks is not identical for all frames!')
-        num_task_error = True
+        error = True
     if not check_all_elements_identical(demul_count_list):
         print('[warning] Num of DEMUL tasks is not identical for all frames!')
-        num_task_error = True
+        error = True
     if not check_all_elements_identical(decode_count_list):
         print('[warning] Num of DECODE tasks is not identical for all frames!')
-        num_task_error = True
+        error = True
 
-    return num_task_error
+    return error
 
 def check_sum(filename):
 
@@ -306,8 +306,8 @@ def check_sum(filename):
 def debug_funcs(filename):
     print('Debugging from log: {}'.format(filename))
     check_deferred_frame(filename=filename)
-    num_task_error = check_task_num(filename=filename)
-    if not num_task_error:
+    error = check_task_num(filename=filename)
+    if not error:
         check_sum(filename=filename)
 
 
