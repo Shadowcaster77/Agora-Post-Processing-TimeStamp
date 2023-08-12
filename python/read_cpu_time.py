@@ -196,6 +196,9 @@ def five9_proc_time_trimmed(filename, thres=THRES):
 def check_all_elements_identical(x):
     return x.count(x[0]) == len(x)
 
+def get_average(x):
+    return sum(x) / len(x)
+
 def check_deferred_frame(filename):
     print('Checking if defferred frames exist...')
 
@@ -209,7 +212,8 @@ def check_deferred_frame(filename):
                 print('[warning] Deferred frames exist!')
                 break
 
-    print('No deferred frames found.')
+    if not defferred_frame:
+        print('No deferred frames found.') 
     return defferred_frame
 
 def check_task_num(filename):
@@ -243,19 +247,19 @@ def check_task_num(filename):
     error = False
 
     if not check_all_elements_identical(fft_count_list):
-        print('[warning] Num of FFT tasks is not identical for all frames!')
+        print('[warning] Num of FFT tasks (avg: {}) is not identical for all frames!'.format(get_average(fft_count_list)))
         error = True
     if not check_all_elements_identical(csi_count_list):
-        print('[warning] Num of CSI tasks is not identical for all frames!')
+        print('[warning] Num of CSI tasks (avg: {})  is not identical for all frames!'.format(get_average(csi_count_list)))
         error = True
     if not check_all_elements_identical(bw_count_list):
-        print('[warning] Num of BW tasks is not identical for all frames!')
+        print('[warning] Num of BW tasks (avg: {})  is not identical for all frames!'.format(get_average(bw_count_list)))
         error = True
     if not check_all_elements_identical(demul_count_list):
-        print('[warning] Num of DEMUL tasks is not identical for all frames!')
+        print('[warning] Num of DEMUL (avg: {})  tasks is not identical for all frames!'.format(get_average(demul_count_list)))
         error = True
     if not check_all_elements_identical(decode_count_list):
-        print('[warning] Num of DECODE tasks is not identical for all frames!')
+        print('[warning] Num of DECODE (avg: {})  tasks is not identical for all frames!'.format(get_average(decode_count_list)))
         error = True
 
     return error
