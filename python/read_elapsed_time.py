@@ -34,15 +34,16 @@ def analyze_elapsed_time(filename):
     num_vios = (elapsed_time_np > DDL_3TTI).sum()
 
     pct99_time = np.percentile(elapsed_time_np, 99)
+    avg_time = np.mean(elapsed_time_np)
 
     # check if meeting the time requirement: 99.999% frames are processed within 3TTI
     prompt = (num_vios/len(elapsed_time_np) < 0.0001)
 
-    return num_vios, pct99_time, prompt
+    return num_vios, pct99_time, avg_time, prompt
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option("--file", type="string", dest="file_name", help="file name as input", default="")
+    parser.add_option("-f", "--file", type="string", dest="file_name", help="file name as input", default="")
     (options, args) = parser.parse_args()
     filename = options.file_name
 
@@ -51,10 +52,11 @@ if __name__ == '__main__':
         parser.error('Must specify log filename with -f or --file, for more options, use -h')
 
     elapsed_time_ls = elapsed_time(filename=filename)
-    num_vios, pct99_time, prompt = analyze_elapsed_time(filename=filename)
+    num_vios, pct99_time, avg_time, prompt = analyze_elapsed_time(filename=filename)
 
     print('Reading from log: {}'.format(filename))
     print(' . Num of frames: {}'.format(len(elapsed_time_ls)))
     print(' . Num of violations: {}'.format(num_vios))
+    print(' . Average elapsed time: {:.2f} ms'.format(avg_time))
     print(' . 99%-frame time = {:.2f} ms'.format(pct99_time))
     print(' . Meet time requirement? {}'.format(prompt))
