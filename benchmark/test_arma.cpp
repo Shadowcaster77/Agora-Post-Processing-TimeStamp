@@ -41,8 +41,8 @@ int main() {
     }
     
     printf("\nAverage time spent on C (A * B): %.3f (us)\n", average(time_us));
-    printf("List %ld occurrences: ", num_occ);
-    for (auto const& t: time_us) printf("%.3f, ", t);
+    // printf("List %ld occurrences: ", num_occ);
+    // for (auto const& t: time_us) printf("%.3f, ", t);
     printf("\n");
 
     return 0;
