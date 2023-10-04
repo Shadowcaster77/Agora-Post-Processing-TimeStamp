@@ -8,6 +8,7 @@ matplotlib = "*"
 regex = "*"
 scipy = "*"
 tabulate = "*"
+pillow = "*"
 
 [dev-packages]
 
