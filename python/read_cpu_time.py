@@ -8,6 +8,7 @@ Description: Read from Agora's stdout screen log and print the processing time
 import regex as re
 import numpy as np
 import math
+import os
 from optparse import OptionParser
 
 THRES = 1500
@@ -349,6 +350,8 @@ if __name__ == '__main__':
     # Handle input error
     if not filename:
         parser.error('Must specify log filename with -f or --file, for more options, use -h')
+    elif not os.path.exists(filename):
+        parser.error('File \"{}\" does not exist'.format(filename))
 
     if debug:
         debug_funcs(filename=filename)
