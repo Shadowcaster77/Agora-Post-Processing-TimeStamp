@@ -12,6 +12,8 @@ import sys
 sys.path.append('..')
 from python import read_elapsed_time
 
+DEADLINE_3TTI=0.375
+
 ################################################################################
 # Functions for plot attributes
 ################################################################################
@@ -51,6 +53,7 @@ log_path = '../log/'
 # log_time = '2023-07-19_16-35-36' # deferred log
 # log_time = '2023-07-25_18-21-23' # normal log
 log_time = '2023-07-27_13-33-53' # origin log
+log_time = '2023-12-08_01-37-26'
 log_name = log_time + '.log'
 print('Reading from log: {}...'.format(log_name))
 
@@ -83,15 +86,17 @@ plt.plot(elapsed_time_sorted, elapsed_time_prob,
 
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
-plt.xlim(1, 2.5)
+# plt.xlim(min(elapsed_time_np), 0.4)
+plt.xlim(min(elapsed_time_np), max(elapsed_time_np))
 title = 'Elapsed Time CDF'
 plt.title(title, fontsize=titlesize)
 plt.xlabel('elapsed time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
-            format=output_format,
-            bbox_inches='tight')
+plt.savefig(
+    output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
+    format=output_format,
+    bbox_inches='tight')
 plt.clf()
 
 
@@ -103,9 +108,12 @@ min_elapsed_time = min(elapsed_time_np)
 max_elapsed_time = max(elapsed_time_np)
 avg_elapsed_time = np.mean(elapsed_time_np)
 five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
+pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
 
 print(' . num of points = {}'.format(len(elapsed_time_ls)))
-print(' . min elapsed time = {:.2f}'.format(min_elapsed_time))
-print(' . max elapsed time = {:.2f}'.format(max_elapsed_time))
-print(' . avg elapsed time = {:.2f}'.format(avg_elapsed_time))
-print(' . 99.999% elapsed time = {:.2f}'.format(five9_elapsed_time))
+print(' . min elapsed time = {:.2f} ms'.format(min_elapsed_time))
+print(' . max elapsed time = {:.2f} ms'.format(max_elapsed_time))
+print(' . avg elapsed time = {:.2f} ms'.format(avg_elapsed_time))
+print(' . 99.999% elapsed time = {:.2f} ms'.format(five9_elapsed_time))
+print(' . {:.2f}% of the frames meet 3TTI deadline of {:.3f} ms'.format(
+    pct_meet_deadline, DEADLINE_3TTI))

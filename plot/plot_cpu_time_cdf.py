@@ -50,7 +50,7 @@ edgecolor='black'
 log_path = '../log/'
 # log_time = '2023-07-19_16-35-36' # deferred log
 # log_time = '2023-07-25_18-21-23' # normal log
-log_time = '2023-07-27_13-33-53' # origin log
+log_time = '2023-12-08_01-37-26'
 log_name = log_time + '.log'
 print('Reading from log: {}...'.format(log_name))
 
@@ -103,7 +103,7 @@ avg_cpu_time = np.mean(cpu_time_np)
 five9_cpu_time = read_cpu_time.five9_proc_time(log_path+log_name)[0]
 
 print(' . num of points = {}'.format(len(cpu_time_ls)))
-print(' . min cpu time = {:.2f}'.format(min_cpu_time))
-print(' . max cpu time = {:.2f}'.format(max_cpu_time))
-print(' . avg cpu time = {:.2f}'.format(avg_cpu_time))
-print(' . 99.999% elapsed time = {:.2f}'.format(five9_cpu_time))
+print(' . min cpu time = {:.2f} ms'.format(min_cpu_time))
+print(' . max cpu time = {:.2f} ms'.format(max_cpu_time))
+print(' . avg cpu time = {:.2f} ms'.format(avg_cpu_time))
+print(' . 99.999% cpu time = {:.2f} ms'.format(five9_cpu_time))

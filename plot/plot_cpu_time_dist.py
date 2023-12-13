@@ -120,7 +120,7 @@ avg_cpu_time = np.mean(cpu_time_np)
 five9_cpu_time = read_cpu_time.five9_proc_time(filename)[0]
 
 print(' . num of points = {}'.format(len(cpu_time_ls)))
-print(' . min cpu time = {:.2f}'.format(min_cpu_time))
-print(' . max cpu time = {:.2f}'.format(max_cpu_time))
-print(' . avg cpu time = {:.2f}'.format(avg_cpu_time))
-print(' . 99.999% elapsed time = {:.2f}'.format(five9_cpu_time))
+print(' . min cpu time = {:.2f} ms'.format(min_cpu_time))
+print(' . max cpu time = {:.2f} ms'.format(max_cpu_time))
+print(' . avg cpu time = {:.2f} ms'.format(avg_cpu_time))
+print(' . 99.999%% cpu time = {:.2f} ms'.format(five9_cpu_time))
