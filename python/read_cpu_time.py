@@ -338,7 +338,7 @@ if __name__ == '__main__':
     parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
-    parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, five9s, default=max", default='max')
+    parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, five9s, default=max", default='five9')
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Print debug message for sanity check", default=False)
     (options, args) = parser.parse_args()
     filename = options.file_name
