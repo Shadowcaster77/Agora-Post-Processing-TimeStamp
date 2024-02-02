@@ -52,17 +52,21 @@ edgecolor='black'
 parser = OptionParser()
 parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
 (options, args) = parser.parse_args()
-filename = options.file_name
+log_path = options.file_name # e.g., /home/ct297/workspace/agora_single-core-sim/log/2023-07-19_16-35-36.log
+log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
+log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 
 # Handle input error
-if not filename:
-    parser.error('Must specify log filename with -f or --file, for more options, use -h')
+if not log_path:
+    parser.error('Must specify log path with -f or --file, for more options, use -h')
 
-print('Reading from log: {}'.format(filename))
+print('Reading from log: {}'.format(log_time))
 
-cpu_time_ls = read_cpu_time.proc_time(filename)[0]
-# cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_name)
+cpu_time_ls = read_cpu_time.proc_time(log_path)[0]
+# cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_time)
 cpu_time_np = np.array(cpu_time_ls)
+
+print('Read the log for cpu time... Done')
 
 #
 # Output
@@ -81,12 +85,12 @@ output_filepath = '../fig/'
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-binwidth = 0.01
-l_bound = 1.2
-h_bound = 1.71
 # binwidth = 0.01
-# l_bound = min(cpu_time_np)
-# h_bound = max(cpu_time_np)
+# l_bound = 1.2
+# h_bound = 1.71
+binwidth = 0.01
+l_bound = min(cpu_time_np)
+h_bound = max(cpu_time_np)
 n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
                     #   density=True,
                     #   color='white',
@@ -99,13 +103,14 @@ n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
 plt.xlim(l_bound, h_bound)
 plt.ylim(0, 5e3)
 # plt.yticks(np.arange(0, 11, 5))
-plt.xticks(np.arange(l_bound, h_bound, step=0.1))
+# plt.xticks(np.arange(l_bound, h_bound, step=0.1))
 title = 'CPU time distribution'
 plt.title(title, fontsize=titlesize)
 plt.xlabel('cpu time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
-plt.savefig(output_filepath + 'cpu_time_dist.' + output_format,
+plt.savefig(output_filepath + 'cpu_time_dist_' + log_time + '.' +
+            output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()
@@ -117,7 +122,7 @@ plt.clf()
 min_cpu_time = min(cpu_time_np)
 max_cpu_time = max(cpu_time_np)
 avg_cpu_time = np.mean(cpu_time_np)
-five9_cpu_time = read_cpu_time.five9_proc_time(filename)[0]
+five9_cpu_time = read_cpu_time.five9_proc_time(log_path)[0]
 
 print(' . num of points = {}'.format(len(cpu_time_ls)))
 print(' . min cpu time = {:.2f} ms'.format(min_cpu_time))

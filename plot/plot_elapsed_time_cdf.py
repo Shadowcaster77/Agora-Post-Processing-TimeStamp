@@ -6,6 +6,7 @@ Author: cstandy
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter
+from optparse import OptionParser
 import numpy as np
 import sys
 
@@ -49,15 +50,20 @@ edgecolor='black'
 #
 # Input
 #
-log_path = '../log/'
-# log_time = '2023-07-19_16-35-36' # deferred log
-# log_time = '2023-07-25_18-21-23' # normal log
-log_time = '2023-07-27_13-33-53' # origin log
-log_time = '2023-12-08_01-37-26'
-log_name = log_time + '.log'
-print('Reading from log: {}...'.format(log_name))
+parser = OptionParser()
+parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
+(options, args) = parser.parse_args()
+log_path = options.file_name # e.g., /home/ct297/workspace/agora_single-core-sim/log/2023-07-19_16-35-36.log
+log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
+log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 
-elapsed_time_ls = read_elapsed_time.elapsed_time(log_path+log_name)
+# Handle input error
+if not log_path:
+    parser.error('Must specify log path with -f or --file, for more options, use -h')
+
+print('Reading from log: {}'.format(log_time))
+
+elapsed_time_ls = read_elapsed_time.elapsed_time(log_path)
 elapsed_time_np = np.array(elapsed_time_ls)
 
 #
@@ -71,13 +77,23 @@ output_format = 'png'
 output_filepath = '../fig/'
 
 ################################################################################
+# Get statistics
+################################################################################
+
+num_samples = len(elapsed_time_ls)
+min_elapsed_time = min(elapsed_time_np)
+max_elapsed_time = max(elapsed_time_np)
+avg_elapsed_time = np.mean(elapsed_time_np)
+five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
+pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
+
+################################################################################
 # Plot 
 ################################################################################
 
 fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-num_samples = len(elapsed_time_ls)
 elapsed_time_sorted = np.sort(elapsed_time_np)
 elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
 plt.plot(elapsed_time_sorted, elapsed_time_prob,
@@ -86,6 +102,14 @@ plt.plot(elapsed_time_sorted, elapsed_time_prob,
 
 # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
+# Plot 3TTI deadline & mark statistics
+two9_elapsed_time = np.percentile(elapsed_time_np, 99)
+plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
+plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
+plt.axvline(x = two9_elapsed_time, color = 'b', linestyle='--', label = f'99% ({two9_elapsed_time:.3f} ms)')
+# Adding a caption
+plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=10, ha='center')
+
 # plt.xlim(min(elapsed_time_np), 0.4)
 plt.xlim(min(elapsed_time_np), max(elapsed_time_np))
 title = 'Elapsed Time CDF'
@@ -93,6 +117,7 @@ plt.title(title, fontsize=titlesize)
 plt.xlabel('elapsed time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
+plt.legend()
 plt.savefig(
     output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
     format=output_format,
@@ -103,12 +128,6 @@ plt.clf()
 ################################################################################
 # Print statistics
 ################################################################################
-
-min_elapsed_time = min(elapsed_time_np)
-max_elapsed_time = max(elapsed_time_np)
-avg_elapsed_time = np.mean(elapsed_time_np)
-five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
-pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
 
 print(' . num of points = {}'.format(len(elapsed_time_ls)))
 print(' . min elapsed time = {:.2f} ms'.format(min_elapsed_time))
