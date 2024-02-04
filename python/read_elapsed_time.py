@@ -11,6 +11,7 @@ import os
 from optparse import OptionParser
 
 DDL_3TTI = 0.375 # unit: ms
+THRES = 1500
 
 def elapsed_time(filename):
     '''
@@ -25,6 +26,22 @@ def elapsed_time(filename):
     elapsed_time_ls = list(map(float, elapsed_time_ls))
 
     return elapsed_time_ls
+
+def elapsed_time_trimmed(filename, thres=1500):
+    '''
+    Elapsed time means the time difference between the reception of the frame
+    and the time it is finished processing (decoded).
+    '''
+
+    elapsed_time_ls = elapsed_time(filename=filename)
+    length = len(elapsed_time_ls)
+
+    if thres * 2 >= length:
+        print('Warning: The number of frames is less than 2 * thres, which is {}'.format(2 * thres))
+        print('=> No frame is removed')
+        return elapsed_time_ls
+
+    return elapsed_time_ls[thres:length-thres]
 
 def analyze_elapsed_time(filename):
     elapsed_time_ls = elapsed_time(filename=filename)
@@ -45,8 +62,12 @@ def analyze_elapsed_time(filename):
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-f", "--file", type="string", dest="file_name", help="file name as input", default="")
+    parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
+    parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
     (options, args) = parser.parse_args()
     filename = options.file_name
+    trim = options.trim
+    thres = options.thres
 
     # Handle input error
     if not filename:
@@ -54,12 +75,15 @@ if __name__ == '__main__':
     elif not os.path.exists(filename):
         parser.error('File \"{}\" does not exist'.format(filename))
 
-    elapsed_time_ls = elapsed_time(filename=filename)
+    if trim:
+        elapsed_time_ls = elapsed_time_trimmed(filename=filename, thres=thres)
+    else:
+        elapsed_time_ls = elapsed_time(filename=filename)
     num_vios, pct99_time, avg_time, prompt = analyze_elapsed_time(filename=filename)
 
     print('Reading from log: {}'.format(filename))
     print(' . Num of frames: {}'.format(len(elapsed_time_ls)))
     print(' . Num of violations: {}'.format(num_vios))
-    print(' . Average elapsed time: {:.2f} ms'.format(avg_time))
-    print(' . 99%-frame time = {:.2f} ms'.format(pct99_time))
+    print(' . Average elapsed time: {:.4f} ms'.format(avg_time))
+    print(' . 99%-frame time = {:.4f} ms'.format(pct99_time))
     print(' . Meet time requirement? {}'.format(prompt))

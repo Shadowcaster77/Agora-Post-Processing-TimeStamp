@@ -58,9 +58,13 @@ def proc_time_trimmed(filename, thres=1500):
     
     This script should be used when the number of frames is larger than 200.
     '''
-    total_time, fft_time, csi_time, bw_time, euqal_time, demul_time, decode_time = proc_time(filename=filename)
+    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
 
     length = len(total_time)
+    if length <= 2 * thres:
+        print('Warning: The number of frames is less than 2 * thres, which is {}'.format(2 * thres))
+        print('=> No frame is removed')
+        return total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time
 
     # Trimmed both leading and trailing frames
     total_time = total_time[thres:length-thres]
@@ -71,7 +75,7 @@ def proc_time_trimmed(filename, thres=1500):
     demul_time = demul_time[thres:length-thres]
     decode_time = decode_time[thres:length-thres]
 
-    return total_time, fft_time, csi_time, bw_time, euqal_time, demul_time, decode_time
+    return total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time
 
 def max_proc_time(filename):
     '''
