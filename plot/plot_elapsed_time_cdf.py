@@ -10,133 +10,125 @@ from optparse import OptionParser
 import numpy as np
 import sys
 
+import plot_time_utils
+
 sys.path.append('..')
 from python import read_elapsed_time
 
 DEADLINE_3TTI=0.375
 
-################################################################################
-# Functions for plot attributes
-################################################################################
+def plot(elapsed_time_np, log_path, output_format='png',
+         output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
 
-################################################################################
-# Font settings: tick size, linewidth, marker size
-################################################################################
+    log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
+    log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 
-# Enable comic style
-# plt.xkcd()
+    print('Plot elapsed time trend from log: {}'.format(log_name))
 
-# Font sizes
+    ############################################################################
+    # Font settings: tick size, linewidth, marker size
+    ############################################################################
 
-titlesize = 28
-# plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
-# plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
-plt.rc('axes', labelsize=28)     # fontsize of the x and y labels
-plt.rc('xtick', labelsize=24)    # fontsize of the tick labels
-plt.rc('ytick', labelsize=24)    # fontsize of the tick labels
-# plt.rc('legend', fontsize=16)    # legend fontsize
-# plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
-# plt.rcParams.update({'font.size': 16})
+    # Enable comic style
+    if xkcd:
+        plt.xkcd()
+    
+    # Mark trimmed or not in the output filename
+    if trim:
+        log_time = log_time + '_trim{}'.format(thres)
 
-FIG_SIZE_W = 6
-FIG_SIZE_H = 6
+    # Font sizes
+    titlesize = 28
+    # plt.rc('font', size=SMALL_SIZE)          # controls default text sizes
+    # plt.rc('axes', titlesize=SMALL_SIZE)     # fontsize of the axes title
+    plt.rc('axes', labelsize=28)     # fontsize of the x and y labels
+    plt.rc('xtick', labelsize=24)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=24)    # fontsize of the tick labels
+    # plt.rc('legend', fontsize=16)    # legend fontsize
+    # plt.rc('figure', titlesize=BIGGER_SIZE)  # fontsize of the figure title
+    # plt.rcParams.update({'font.size': 16})
 
-edgecolor='black'
+    FIG_SIZE_W = 6
+    FIG_SIZE_H = 6
 
-################################################################################
-# I/O format
-################################################################################
+    edgecolor='black'
 
-#
-# Input
-#
-parser = OptionParser()
-parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
-(options, args) = parser.parse_args()
-log_path = options.file_name # e.g., /home/ct297/workspace/agora_single-core-sim/log/2023-07-19_16-35-36.log
-log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
-log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
+    ############################################################################
+    # Get statistics
+    ############################################################################
 
-# Handle input error
-if not log_path:
-    parser.error('Must specify log path with -f or --file, for more options, use -h')
+    num_samples = len(elapsed_time_np)
+    two9_elapsed_time = np.percentile(elapsed_time_np, 99)
+    three9_elapsed_time = np.percentile(elapsed_time_np, 99.9)
+    four9_elapsed_time = np.percentile(elapsed_time_np, 99.99)
+    five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
+    pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
 
-print('Reading from log: {}'.format(log_name))
+    ############################################################################
+    # Plot 
+    ############################################################################
 
-elapsed_time_ls = read_elapsed_time.elapsed_time_trimmed(log_path)
-elapsed_time_np = np.array(elapsed_time_ls)
+    fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
+    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-#
-# Output
-#
+    elapsed_time_sorted = np.sort(elapsed_time_np)
+    elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
+    plt.plot(elapsed_time_sorted, elapsed_time_prob,
+            marker='o',
+            linewidth=0)
 
-output_format = 'png'
-# output_format = 'svg'
-# output_format = 'pdf'
+    # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
-output_filepath = '../fig/'
+    # Plot 3TTI deadline & mark statistics
+    plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
+    plt.axvline(x = two9_elapsed_time, color = 'b', linestyle='--', label = f'99% ({two9_elapsed_time:.3f} ms)')
+    plt.axvline(x = three9_elapsed_time, color = 'c', linestyle='--', label = f'99.9% ({three9_elapsed_time:.3f} ms)')
+    plt.axvline(x = four9_elapsed_time, color = 'y', linestyle='--', label = f'99.99% ({four9_elapsed_time:.3f} ms)')
+    plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
+    # Adding a caption
+    plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=10, ha='center')
 
-################################################################################
-# Get statistics
-################################################################################
+    # plt.xlim(min(elapsed_time_np), 0.4)
+    plt.xlim(0, max(elapsed_time_np))
+    title = 'Elapsed Time CDF'
+    plt.title(title, fontsize=titlesize)
+    plt.xlabel('elapsed time (ms)')
+    plt.ylabel('Num of frames')
+    plt.grid()
+    plt.legend()
+    plt.savefig(
+        output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
+        format=output_format,
+        bbox_inches='tight')
+    plt.clf()
 
-num_samples = len(elapsed_time_ls)
-min_elapsed_time = min(elapsed_time_np)
-max_elapsed_time = max(elapsed_time_np)
-avg_elapsed_time = np.mean(elapsed_time_np)
-pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
+if __name__ == '__main__':
+    # Input
+    parser = OptionParser()
+    parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
+    parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
+    parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(read_elapsed_time.THRES), default=read_elapsed_time.THRES)
+    parser.add_option("--output_format", type="string", dest="output_format", help="Output format (png, svg, pdf), default=png", default="png")
+    parser.add_option("--output_filepath", type="string", dest="output_filepath", help="Output file path, default=../fig/", default="../fig/")
+    parser.add_option("--xkcd", action="store_true", dest="xkcd", help="Enable xkcd style, default=False", default=False)
+    (options, args) = parser.parse_args()
 
-################################################################################
-# Plot 
-################################################################################
+    # Input file path
+    log_path = options.file_name # e.g., /home/ct297/workspace/agora_single-core-sim/log/2023-07-19_16-35-36.log
 
-fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
-plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    # Handle input error
+    if not log_path:
+        parser.error('Must specify log path with -f or --file, for more options, use -h')
 
-elapsed_time_sorted = np.sort(elapsed_time_np)
-elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
-plt.plot(elapsed_time_sorted, elapsed_time_prob,
-         marker='o',
-         linewidth=0)
+    # Process options
+    trim = options.trim # default=False
+    thres = options.thres # default=1500
 
-# print (np.sum(n*np.diff(bins))) # verify the integral is 1
+    # Output options
+    output_format = options.output_format # png (default), svg, pdf
+    output_filepath = options.output_filepath # ../fig/
+    xkcd = options.xkcd # default=False
 
-# Plot 3TTI deadline & mark statistics
-two9_elapsed_time = np.percentile(elapsed_time_np, 99)
-three9_elapsed_time = np.percentile(elapsed_time_np, 99.9)
-four9_elapsed_time = np.percentile(elapsed_time_np, 99.99)
-five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
-plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
-plt.axvline(x = two9_elapsed_time, color = 'b', linestyle='--', label = f'99% ({two9_elapsed_time:.3f} ms)')
-plt.axvline(x = three9_elapsed_time, color = 'c', linestyle='--', label = f'99.9% ({three9_elapsed_time:.3f} ms)')
-plt.axvline(x = four9_elapsed_time, color = 'y', linestyle='--', label = f'99.99% ({four9_elapsed_time:.3f} ms)')
-plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
-# Adding a caption
-plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=10, ha='center')
-
-# plt.xlim(min(elapsed_time_np), 0.4)
-plt.xlim(0, max(elapsed_time_np))
-title = 'Elapsed Time CDF'
-plt.title(title, fontsize=titlesize)
-plt.xlabel('elapsed time (ms)')
-plt.ylabel('Num of frames')
-plt.grid()
-plt.legend()
-plt.savefig(
-    output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
-    format=output_format,
-    bbox_inches='tight')
-plt.clf()
-
-
-################################################################################
-# Print statistics
-################################################################################
-
-print(' . num of points = {}'.format(len(elapsed_time_ls)))
-print(' . min elapsed time = {:.4f} ms'.format(min_elapsed_time))
-print(' . max elapsed time = {:.4f} ms'.format(max_elapsed_time))
-print(' . avg elapsed time = {:.4f} ms'.format(avg_elapsed_time))
-print(' . 99.999% elapsed time = {:.4f} ms'.format(five9_elapsed_time))
-print(' . {:.2f}% of the frames meet 3TTI deadline of {:.3f} ms'.format(
-    pct_meet_deadline, DEADLINE_3TTI))
+    elapsed_time_np = plot_time_utils.read_elapsed_time_from_file(log_path, trim, thres)
+    plot(elapsed_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
+    plot_time_utils.print_elapsed_time_stat(elapsed_time_np)

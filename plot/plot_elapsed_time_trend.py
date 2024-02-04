@@ -10,26 +10,10 @@ from optparse import OptionParser
 import numpy as np
 import sys
 
+import plot_time_utils
+
 sys.path.append('..')
 from python import read_elapsed_time
-
-################################################################################
-# Functions for plot attributes
-################################################################################
-
-def read_elapsed_time_from_file(log_path, trim, thres):
-    '''
-    Elapsed time means the time difference between the reception of the frame
-    and the time it is finished processing (decoded).
-    '''
-    if trim:
-        elapsed_time_ls = read_elapsed_time.elapsed_time_trimmed(log_path, thres)
-    else:
-        elapsed_time_ls = read_elapsed_time.elapsed_time(log_path)
-
-    elapsed_time_np = np.array(elapsed_time_ls)
-
-    return elapsed_time_np
 
 def plot(elapsed_time_np, log_path, output_format='png',
          output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
@@ -88,22 +72,6 @@ def plot(elapsed_time_np, log_path, output_format='png',
                 bbox_inches='tight')
     plt.clf()
 
-################################################################################
-# Print statistics
-################################################################################
-
-def print_elapsed_time_stat(elapsed_time_np):
-    min_elapsed_time = min(elapsed_time_np)
-    max_elapsed_time = max(elapsed_time_np)
-    avg_elapsed_time = np.mean(elapsed_time_np)
-    five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
-
-    print(' . num of points = {}'.format(len(elapsed_time_np)))
-    print(' . min elapsed time = {:.4f} ms'.format(min_elapsed_time))
-    print(' . max elapsed time = {:.4f} ms'.format(max_elapsed_time))
-    print(' . avg elapsed time = {:.4f} ms'.format(avg_elapsed_time))
-    print(' . 99.999% elapsed time = {:.4f} ms'.format(five9_elapsed_time))
-
 if __name__ == '__main__':
     # Input
     parser = OptionParser()
@@ -131,6 +99,6 @@ if __name__ == '__main__':
     output_filepath = options.output_filepath # ../fig/
     xkcd = options.xkcd # default=False
 
-    elapsed_time_np = read_elapsed_time_from_file(log_path, trim, thres)
+    elapsed_time_np = plot_time_utils.read_elapsed_time_from_file(log_path, trim, thres)
     plot(elapsed_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
-    print_elapsed_time_stat(elapsed_time_np)
+    plot_time_utils.print_elapsed_time_stat(elapsed_time_np)
