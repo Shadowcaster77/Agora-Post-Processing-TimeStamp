@@ -61,9 +61,9 @@ log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 if not log_path:
     parser.error('Must specify log path with -f or --file, for more options, use -h')
 
-print('Reading from log: {}'.format(log_time))
+print('Reading from log: {}'.format(log_name))
 
-elapsed_time_ls = read_elapsed_time.elapsed_time(log_path)
+elapsed_time_ls = read_elapsed_time.elapsed_time_trimmed(log_path)
 elapsed_time_np = np.array(elapsed_time_ls)
 
 #
@@ -84,7 +84,6 @@ num_samples = len(elapsed_time_ls)
 min_elapsed_time = min(elapsed_time_np)
 max_elapsed_time = max(elapsed_time_np)
 avg_elapsed_time = np.mean(elapsed_time_np)
-five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
 pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
 
 ################################################################################
@@ -104,14 +103,19 @@ plt.plot(elapsed_time_sorted, elapsed_time_prob,
 
 # Plot 3TTI deadline & mark statistics
 two9_elapsed_time = np.percentile(elapsed_time_np, 99)
+three9_elapsed_time = np.percentile(elapsed_time_np, 99.9)
+four9_elapsed_time = np.percentile(elapsed_time_np, 99.99)
+five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
 plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
-plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
 plt.axvline(x = two9_elapsed_time, color = 'b', linestyle='--', label = f'99% ({two9_elapsed_time:.3f} ms)')
+plt.axvline(x = three9_elapsed_time, color = 'c', linestyle='--', label = f'99.9% ({three9_elapsed_time:.3f} ms)')
+plt.axvline(x = four9_elapsed_time, color = 'y', linestyle='--', label = f'99.99% ({four9_elapsed_time:.3f} ms)')
+plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
 # Adding a caption
 plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=10, ha='center')
 
 # plt.xlim(min(elapsed_time_np), 0.4)
-plt.xlim(min(elapsed_time_np), max(elapsed_time_np))
+plt.xlim(0, max(elapsed_time_np))
 title = 'Elapsed Time CDF'
 plt.title(title, fontsize=titlesize)
 plt.xlabel('elapsed time (ms)')
@@ -130,9 +134,9 @@ plt.clf()
 ################################################################################
 
 print(' . num of points = {}'.format(len(elapsed_time_ls)))
-print(' . min elapsed time = {:.2f} ms'.format(min_elapsed_time))
-print(' . max elapsed time = {:.2f} ms'.format(max_elapsed_time))
-print(' . avg elapsed time = {:.2f} ms'.format(avg_elapsed_time))
-print(' . 99.999% elapsed time = {:.2f} ms'.format(five9_elapsed_time))
+print(' . min elapsed time = {:.4f} ms'.format(min_elapsed_time))
+print(' . max elapsed time = {:.4f} ms'.format(max_elapsed_time))
+print(' . avg elapsed time = {:.4f} ms'.format(avg_elapsed_time))
+print(' . 99.999% elapsed time = {:.4f} ms'.format(five9_elapsed_time))
 print(' . {:.2f}% of the frames meet 3TTI deadline of {:.3f} ms'.format(
     pct_meet_deadline, DEADLINE_3TTI))

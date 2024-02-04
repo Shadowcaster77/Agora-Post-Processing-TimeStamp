@@ -59,10 +59,10 @@ log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 if not log_path:
     parser.error('Must specify log path with -f or --file, for more options, use -h')
 
-print('Reading from log: {}'.format(log_time))
+print('Reading from log: {}'.format(log_name))
 
-cpu_time_ls = read_cpu_time.proc_time(log_path)[0]
-# cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path)
+# cpu_time_ls = read_cpu_time.proc_time(log_path)[0]
+cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path, thres=1500)[0]
 cpu_time_np = np.array(cpu_time_ls)
 
 #
@@ -82,7 +82,6 @@ output_filepath = '../fig/'
 min_cpu_time = min(cpu_time_np)
 max_cpu_time = max(cpu_time_np)
 avg_cpu_time = np.mean(cpu_time_np)
-five9_cpu_time = read_cpu_time.five9_proc_time(log_path)[0]
 
 ################################################################################
 # Plot
@@ -100,18 +99,23 @@ plt.plot(cpu_time_sorted, cpu_time_prob,
 
 # Plot 3TTI deadline & mark statistics
 two9_cpu_time = np.percentile(cpu_time_np, 99)
+three9_cpu_time = np.percentile(cpu_time_np, 99.9)
+four9_cpu_time = np.percentile(cpu_time_np, 99.99)
+five9_cpu_time = np.percentile(cpu_time_np, 99.999)
 plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
-plt.axvline(x = five9_cpu_time, color = 'g', linestyle='--', label = f'99.999% ({five9_cpu_time:.3f} ms)')
 plt.axvline(x = two9_cpu_time, color = 'b', linestyle='--', label = f'99% ({two9_cpu_time:.3f} ms)')
+plt.axvline(x = three9_cpu_time, color = 'y', linestyle='--', label = f'99.9% ({three9_cpu_time:.3f} ms)')
+plt.axvline(x = four9_cpu_time, color = 'c', linestyle='--', label = f'99.99% ({four9_cpu_time:.3f} ms)')
+plt.axvline(x = five9_cpu_time, color = 'g', linestyle='--', label = f'99.999% ({five9_cpu_time:.3f} ms)')
 
 title = 'CPU Time CDF'
-plt.xlim(min(cpu_time_sorted), max(cpu_time_sorted))
+plt.xlim(0, max(cpu_time_sorted))
 plt.title(title, fontsize=titlesize)
 plt.xlabel('cpu time (ms)')
 plt.ylabel('Num of frames')
 plt.grid()
 plt.legend()
-plt.savefig(output_filepath + 'cpu_time_cdf_' + log_time + '.' + output_format,
+plt.savefig(output_filepath + 'cpu_time_cdf_' + log_time + '_trim.' + output_format,
             format=output_format,
             bbox_inches='tight')
 plt.clf()

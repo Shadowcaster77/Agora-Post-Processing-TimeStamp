@@ -60,7 +60,7 @@ log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 if not log_path:
     parser.error('Must specify log path with -f or --file, for more options, use -h')
 
-print('Reading from log: {}'.format(log_time))
+print('Reading from log: {}'.format(log_name))
 
 cpu_time_ls = read_cpu_time.proc_time(log_path)[0]
 # cpu_time_ls = read_cpu_time.proc_time_trimmed(log_path+log_time)
