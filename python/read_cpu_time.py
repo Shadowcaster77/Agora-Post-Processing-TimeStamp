@@ -9,6 +9,7 @@ import regex as re
 import numpy as np
 import math
 import os
+import glob
 from optparse import OptionParser
 
 THRES = 1500
@@ -344,16 +345,35 @@ if __name__ == '__main__':
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
     parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, five9s, default=max", default='five9')
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Print debug message for sanity check", default=False)
+    parser.add_option("-p", "--path", type="string", dest="path", help="Path to read the latest log file", default="")
     (options, args) = parser.parse_args()
     filename = options.file_name
+    path = options.path
     trim = options.trim
     stat = options.stat
     thres = options.thres
     debug = options.debug
 
+    # Find the latest file given a file path
+    if path:
+        # List all files in the directory
+        files = glob.glob(os.path.join(path, '*'))
+        
+        # Ensure the directory is not empty and files are present
+        if not files:
+            parser.error('No files found in the directory')
+
+        # Find the file with the latest modification time
+        latest_file = max(files, key=os.path.getmtime)
+
+        if filename:
+            print('Warning: Both -f and -p are specified. -p is used.')
+
+        filename = latest_file
+
     # Handle input error
     if not filename:
-        parser.error('Must specify log filename with -f or --file, for more options, use -h')
+        parser.error('Must specify log filename with -f/--file or read the latest log file from path with -p/--path, for more options, use -h/--help')
     elif not os.path.exists(filename):
         parser.error('File \"{}\" does not exist'.format(filename))
 
@@ -383,6 +403,7 @@ if __name__ == '__main__':
     num_frames = len(proc_time(filename=filename)[0])
 
     sum = fft_time + csi_time + bw_time + equal_time + demul_time + decode_time
+    print('Reading from log: {}'.format(filename))
     print('------------------------')
     print("\"{}\" (out of {}) frame processing time = {:.3f} ms, which has".format(stat, num_frames, total_time))
     print(" . FFT time    = {:.3f} ms ({:.0%})".format(fft_time, fft_time/total_time))
