@@ -115,6 +115,6 @@ if __name__ == '__main__':
     output_filepath = options.output_filepath # ../fig/
     xkcd = options.xkcd # default=False
 
-    cpu_time_np = plot_time_utils.read_cpu_time_from_file(log_path, trim, thres)
+    cpu_time_np = plot_time_utils.read_cpu_time_from_file(log_path, trim, thres)[0]
     plot(cpu_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
     plot_time_utils.print_cpu_time_stat(cpu_time_np)

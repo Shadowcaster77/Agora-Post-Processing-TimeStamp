@@ -7,6 +7,7 @@ import sys
 
 sys.path.append('..')
 from python import read_elapsed_time
+from python import read_cpu_time
 
 ################################################################################
 # Read from log and return numpy array
@@ -32,13 +33,19 @@ def read_cpu_time_from_file(log_path, trim, thres):
     decoding process.
     '''
     if trim:
-        cpu_time_ls = read_elapsed_time.elapsed_time_trimmed(log_path, thres)
+        cpu_time_ls, fft_time_ls, csi_time_ls, bw_time_ls, equal_time_ls, demul_time_ls, decode_time_ls = read_cpu_time.proc_time_trimmed(log_path, thres)
     else:
-        cpu_time_ls = read_elapsed_time.elapsed_time(log_path)
+        cpu_time_ls, fft_time_ls, csi_time_ls, bw_time_ls, equal_time_ls, demul_time_ls, decode_time_ls = read_cpu_time.proc_time(log_path)
 
     cpu_time_np = np.array(cpu_time_ls)
+    fft_time_np = np.array(fft_time_ls)
+    csi_time_np = np.array(csi_time_ls)
+    bw_time_np = np.array(bw_time_ls)
+    equal_time_np = np.array(equal_time_ls)
+    demul_time_np = np.array(demul_time_ls)
+    decode_time_np = np.array(decode_time_ls)
 
-    return cpu_time_np
+    return cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np, demul_time_np, decode_time_np
 
 ################################################################################
 # Print statistics
