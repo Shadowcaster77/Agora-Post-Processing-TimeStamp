@@ -8,6 +8,7 @@ Description: Read from Agora's stdout screen log and print the elapsed time for
 import regex as re
 import numpy as np
 import os
+import glob
 from optparse import OptionParser
 
 DDL_3TTI = 0.375 # unit: ms
@@ -64,10 +65,29 @@ if __name__ == '__main__':
     parser.add_option("-f", "--file", type="string", dest="file_name", help="file name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
+    parser.add_option("-p", "--path", type="string", dest="path", help="Path to read the latest log file", default="")
     (options, args) = parser.parse_args()
     filename = options.file_name
     trim = options.trim
     thres = options.thres
+    path = options.path
+
+    # Find the latest file given a file path
+    if path:
+        # List all files in the directory
+        files = glob.glob(os.path.join(path, '*'))
+        
+        # Ensure the directory is not empty and files are present
+        if not files:
+            parser.error('No files found in the directory')
+
+        # Find the file with the latest modification time
+        latest_file = max(files, key=os.path.getmtime)
+
+        if filename:
+            print('Warning: Both -f and -p are specified. -p is used.')
+
+        filename = latest_file
 
     # Handle input error
     if not filename:
