@@ -23,8 +23,26 @@ def elapsed_time(filename):
     f = open(filename, 'r')
     lines = f.read()
 
-    elapsed_time_ls = re.findall('Main \[frame \d+ \+ ([0-9]+\.[0-9]+) ms\]: Completed LDPC decoding \(\d+ UL symbols\)',lines)
+    elapsed_time_ls = re.findall('Main \[frame \d+ \+ ([0-9]+\.[0-9]+) ms\]: Completed LDPC decoding \(\d+ UL symbols\)', lines)
     elapsed_time_ls = list(map(float, elapsed_time_ls))
+
+    return elapsed_time_ls
+
+def elapsed_time_after_pilot(filename):
+    '''
+    Elapsed time means the time difference between the end of FFT of all pilots
+    and the time it is finished processing (decoded).
+    '''
+
+    f = open(filename, 'r')
+    lines = f.read()
+
+    fft_time_ls = re.findall('Main \[frame \d+ \+ ([0-9]+\.[0-9]+) ms\]: FFT-ed all pilots', lines)
+    decode_time_ls = re.findall('Main \[frame \d+ \+ ([0-9]+\.[0-9]+) ms\]: Completed LDPC decoding \(\d+ UL symbols\)', lines)
+    fft_time_ls = list(map(float, fft_time_ls))
+    decode_time_ls = list(map(float, decode_time_ls))
+    assert len(fft_time_ls) == len(decode_time_ls), "The number of frames is different between FFT and decoding!"
+    elapsed_time_ls = [decode_time_ls[i] - fft_time_ls[i] for i in range(len(fft_time_ls))]
 
     return elapsed_time_ls
 
@@ -44,9 +62,7 @@ def elapsed_time_trimmed(filename, thres=1500):
 
     return elapsed_time_ls[thres:length-thres]
 
-def analyze_elapsed_time(filename):
-    elapsed_time_ls = elapsed_time(filename=filename)
-
+def analyze_elapsed_time(elapsed_time_ls):
     elapsed_time_np = np.array(elapsed_time_ls)
 
     # number of time requirement violations
@@ -65,11 +81,13 @@ if __name__ == '__main__':
     parser.add_option("-f", "--file", type="string", dest="file_name", help="file name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
+    parser.add_option("--postfft", action="store_true", dest="postfft", help="Calculate the elapsed time after the pilot, default=False", default=False)
     parser.add_option("-p", "--path", type="string", dest="path", help="Path to read the latest log file", default="")
     (options, args) = parser.parse_args()
     filename = options.file_name
     trim = options.trim
     thres = options.thres
+    postfft = options.postfft
     path = options.path
 
     # Find the latest file given a file path
@@ -97,9 +115,13 @@ if __name__ == '__main__':
 
     if trim:
         elapsed_time_ls = elapsed_time_trimmed(filename=filename, thres=thres)
+        print('Warning: The first and last {} frames are removed'.format(thres))
+    elif postfft:
+        elapsed_time_ls = elapsed_time_after_pilot(filename=filename)
+        print('Warning: The elapsed time is calculated after the pilot')
     else:
         elapsed_time_ls = elapsed_time(filename=filename)
-    num_vios, pct99_time, avg_time, prompt = analyze_elapsed_time(filename=filename)
+    num_vios, pct99_time, avg_time, prompt = analyze_elapsed_time(elapsed_time_ls)
 
     print('Reading from log: {}'.format(filename))
     print(' . Num of frames: {}'.format(len(elapsed_time_ls)))
