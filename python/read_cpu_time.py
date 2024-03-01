@@ -78,128 +78,64 @@ def proc_time_trimmed(filename, thres=1500):
 
     return total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time
 
-def max_proc_time(filename):
+def stat_proc_time(filename, stat='max', trim=False, thres=1500):
     '''
-    Find the frame with maximum processing time in total.
+    This func reads all the frames and find the frame with the
+    max/min/avg/99.9%/99.999% processing time in total.
     Return: total processing time and processing time in each stage
     '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
-    index = total_time.index(max(total_time))
-    # print("Num of frames in the log = {}".format(len(total_time)))
-    # print("=> {} frames analyzed".format(len(total_time)))
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
-
-def max_proc_time_trimmed(filename, thres=THRES):
-    '''
-    Find the frame (among trimmed frame list) with maximum processing time in total.
-    Return: total processing time and processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
-    index = total_time.index(max(total_time))
-    # print("Num of frames in the log = {}".format(len(total_time) + 2*thres))
-    # print("Discard leading {} frames and trailing {} frames".format(thres, thres))
-    # print("=> {} frames analyzed".format(len(total_time)))
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
-
-def min_proc_time(filename):
-    '''
-    Find the frame with minimum processing time in total.
-    Return: total processing time and processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
-    index = total_time.index(min(total_time))
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
-
-def min_proc_time_trimmed(filename, thres=THRES):
-    '''
-    Find the frame (among trimmed frame list) with minimum processing time in total.
-    Return: total processing time and processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
-    index = total_time.index(min(total_time))
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
-
-def avg_proc_time(filename):
-    '''
-    Calculate the average frame processing time.
-    Return: average frame processing time and  average processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
+    if trim:
+        total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
+    else:
+        total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
     num_frames = len(total_time)
-    avg_total_time = sum(total_time) / num_frames
-    avg_fft_time = sum(fft_time) / num_frames
-    avg_csi_time = sum(csi_time) / num_frames
-    avg_bw_time = sum(bw_time) / num_frames
-    avg_equal_time = sum(equal_time) / num_frames
-    avg_demul_time = sum(demul_time) / num_frames
-    avg_decode_time = sum(decode_time) / num_frames
 
-    return avg_total_time, avg_fft_time, avg_csi_time, avg_bw_time, avg_equal_time, avg_demul_time, avg_decode_time
-
-def avg_proc_time_trimmed(filename, thres=THRES):
-    '''
-    Calculate the average frame processing time.
-    Return: average frame processing time and  average processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
-    num_frames = len(total_time)
-    avg_total_time = sum(total_time) / num_frames
-    avg_fft_time = sum(fft_time) / num_frames
-    avg_csi_time = sum(csi_time) / num_frames
-    avg_bw_time = sum(bw_time) / num_frames
-    avg_equal_time = sum(equal_time) / num_frames
-    avg_demul_time = sum(demul_time) / num_frames
-    avg_decode_time = sum(decode_time) / num_frames
-
-    return avg_total_time, avg_fft_time, avg_csi_time, avg_bw_time, avg_equal_time, avg_demul_time, avg_decode_time
-
-def five9_proc_time(filename):
-    '''
-    Find the frame whose total processing time is the 99.999% largest.
-    Return: total processing time and processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time(filename=filename)
-
-    # Sort the frame proc time
-    sorted_total_time = sorted(total_time)
-    num_frames = len(total_time)
-    five9_idx = int(num_frames * 0.99999)
-
-    # Handle exceptions
-    if five9_idx <= 0:
-        five9_idx = 1
-
-    five9_val = sorted_total_time[five9_idx - 1]
-    index = total_time.index(five9_val)
-
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
-
-def five9_proc_time_trimmed(filename, thres=THRES):
-    '''
-    Find the frame whose total processing time is the 99.999% largest.
-    Return: total processing time and processing time in each stage
-    '''
-    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = proc_time_trimmed(filename=filename, thres=thres)
-
-    # Sort the frame proc time
-    sorted_total_time = sorted(total_time)
-    num_frames = len(total_time)
-    five9_idx = int(num_frames * 0.99999)
-
-    # Handle exceptions
-    if five9_idx <= 0:
-        five9_idx = 1
-
-    five9_val = sorted_total_time[five9_idx - 1]
-    index = total_time.index(five9_val)
-
-    return total_time[index], fft_time[index], csi_time[index],\
-           bw_time[index], equal_time[index], demul_time[index], decode_time[index]
+    if stat == 'max':
+        index = total_time.index(max(total_time))
+        return total_time[index], fft_time[index], csi_time[index],\
+               bw_time[index], equal_time[index], demul_time[index],\
+               decode_time[index], num_frames
+    if stat == 'min':
+        index = total_time.index(min(total_time))
+        return total_time[index], fft_time[index], csi_time[index],\
+               bw_time[index], equal_time[index], demul_time[index],\
+               decode_time[index], num_frames
+    if stat == 'avg':
+        avg_total_time = sum(total_time) / num_frames
+        avg_fft_time = sum(fft_time) / num_frames
+        avg_csi_time = sum(csi_time) / num_frames
+        avg_bw_time = sum(bw_time) / num_frames
+        avg_equal_time = sum(equal_time) / num_frames
+        avg_demul_time = sum(demul_time) / num_frames
+        avg_decode_time = sum(decode_time) / num_frames
+        return avg_total_time, avg_fft_time, avg_csi_time, avg_bw_time,\
+               avg_equal_time, avg_demul_time, avg_decode_time, num_frames
+    if stat == 'three9':
+        # Sort the frame proc time
+        sorted_total_time = sorted(total_time)
+        num_frames = len(total_time)
+        three9_idx = int(num_frames * 0.999)
+        # Handle exceptions
+        if three9_idx <= 0:
+            three9_idx = 1
+        three9_val = sorted_total_time[three9_idx - 1]
+        index = total_time.index(three9_val)
+        return total_time[index], fft_time[index], csi_time[index],\
+               bw_time[index], equal_time[index], demul_time[index],\
+               decode_time[index], num_frames
+    if stat == 'five9':
+        # Sort the frame proc time
+        sorted_total_time = sorted(total_time)
+        num_frames = len(total_time)
+        five9_idx = int(num_frames * 0.99999)
+        # Handle exceptions
+        if five9_idx <= 0:
+            five9_idx = 1
+        five9_val = sorted_total_time[five9_idx - 1]
+        index = total_time.index(five9_val)
+        return total_time[index], fft_time[index], csi_time[index],\
+               bw_time[index], equal_time[index], demul_time[index],\
+               decode_time[index], num_frames    
 
 ################################################################################
 # Debug related func
@@ -343,7 +279,7 @@ if __name__ == '__main__':
     parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
     parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(THRES), default=THRES)
-    parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, five9s, default=max", default='five9')
+    parser.add_option("-s", "--stat", type="string", dest="stat", help="Choose statistic method: max, min, avg, three9s five9, default=max", default='five9')
     parser.add_option("-d", "--debug", action="store_true", dest="debug", help="Print debug message for sanity check", default=False)
     parser.add_option("-p", "--path", type="string", dest="path", help="Path to read the latest log file", default="")
     (options, args) = parser.parse_args()
@@ -381,38 +317,20 @@ if __name__ == '__main__':
         debug_funcs(filename=filename)
         exit(0)
 
-    if trim:
-        if stat == 'max':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = max_proc_time_trimmed(filename=filename, thres=thres)
-        if stat == 'min':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = min_proc_time_trimmed(filename=filename, thres=thres)
-        if stat == 'avg':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = avg_proc_time_trimmed(filename=filename, thres=thres)
-        if stat == 'five9':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = five9_proc_time_trimmed(filename=filename, thres=thres)
-    else:
-        if stat == 'max':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = max_proc_time(filename=filename)
-        if stat == 'min':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = min_proc_time(filename=filename)
-        if stat == 'avg':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = avg_proc_time(filename=filename)
-        if stat == 'five9':
-            total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time = five9_proc_time(filename=filename)
-    
-    num_frames = len(proc_time(filename=filename)[0])
+    total_time, fft_time, csi_time, bw_time, equal_time, demul_time, decode_time, num_frames = stat_proc_time(filename=filename, stat=stat, trim=trim, thres=thres)
 
     sum = fft_time + csi_time + bw_time + equal_time + demul_time + decode_time
     print('Reading from log: {}'.format(filename))
     print('------------------------')
-    print("\"{}\" (out of {}) frame processing time = {:.3f} ms, which has".format(stat, num_frames, total_time))
-    print(" . FFT time    = {:.3f} ms ({:.0%})".format(fft_time, fft_time/total_time))
-    print(" . CSI time    = {:.3f} ms ({:.0%})".format(csi_time, csi_time/total_time))
-    print(" . BW time     = {:.3f} ms ({:.0%})".format(bw_time, bw_time/total_time))
-    print(" . Equal. time = {:.3f} ms ({:.0%})".format(equal_time, equal_time/total_time))
-    print(" . Demod. time = {:.3f} ms ({:.0%})".format(demul_time, demul_time/total_time))
-    print(" . Decode time = {:.3f} ms ({:.0%})".format(decode_time, decode_time/total_time))
+    print("\"{}\" (out of {}) frame processing time = {:3.4f} ms, which has".format(stat, num_frames, total_time))
+    print(" . Sum         = {:3.4f}  ms ({:.0%})".format(sum, sum/total_time))
+    print(" . FFT time    = {:3.4f}  ms ({:.0%})".format(fft_time, fft_time/total_time))
+    print(" . CSI time    = {:3.4f}  ms ({:.0%})".format(csi_time, csi_time/total_time))
+    print(" . BW time     = {:3.4f}  ms ({:.0%})".format(bw_time, bw_time/total_time))
+    print(" . Equal. time = {:3.4f}  ms ({:.0%})".format(equal_time, equal_time/total_time))
+    print(" . Demod. time = {:3.4f}  ms ({:.0%})".format(demul_time, demul_time/total_time))
+    print(" . Decode time = {:3.4f}  ms ({:.0%})".format(decode_time, decode_time/total_time))
     print('------------------------')
-    print(" . Sum         = {:.3f} ms ({:.0%})".format(sum, sum/total_time))
+    print(" . Sum         = {:3.4f} ms ({:.0%})".format(sum, sum/total_time))
     if trim:
         print(" * Leading {} frames and trailing {} frames discarded".format(thres, thres))
