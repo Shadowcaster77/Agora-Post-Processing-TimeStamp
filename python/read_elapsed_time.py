@@ -28,6 +28,23 @@ def elapsed_time(filename):
 
     return elapsed_time_ls
 
+def elapsed_time_trimmed(filename, thres):
+    '''
+    Returned trimmed elapsed time without any modifications.
+    '''
+
+    elapsed_time_ls = elapsed_time(filename)
+
+    length = len(elapsed_time_ls)
+    if thres * 2 >= length:
+        print('Warning: The number of frames ({}) is less than 2 * thres ({})'.format(length, 2 * thres))
+        print('=> No frame is removed')
+    else:
+        elapsed_time_ls = elapsed_time_ls[thres:length-thres]
+        print('Warning: The first and last {} frames are removed'.format(thres))
+
+    return elapsed_time_ls
+
 def elapsed_time_proc(filename):
     '''
     Elapsed time means the time difference between the start of processing (FFT)
@@ -95,6 +112,13 @@ def analyze_elapsed_time(elapsed_time_ls):
     four9_time = np.percentile(elapsed_time_np, 99.99) if elapsed_time_np.size >= 10000 else np.nan
     five9_time = np.percentile(elapsed_time_np, 99.999) if elapsed_time_np.size >= 100000 else np.nan
     avg_time = np.mean(elapsed_time_np)
+
+    min_time = np.min(elapsed_time_np)
+    max_time = np.max(elapsed_time_np)
+    mediam_time = np.median(elapsed_time_np)
+    quartile_time = np.percentile(elapsed_time_np, [25, 75])
+    print("{:.4f}, {:.4f}, {:.4f}, {:.4f}, {:.4f}".format(
+        min_time, quartile_time[0], mediam_time, quartile_time[1], three9_time))
 
     # check if meeting the time requirement: 99.999% frames are processed within 3TTI
     prompt = (num_vios/len(elapsed_time_np) < 0.0001)

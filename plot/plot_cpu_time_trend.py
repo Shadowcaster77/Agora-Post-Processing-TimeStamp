@@ -103,8 +103,8 @@ def plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np,
     plt.xlabel('Frame index')
     plt.ylabel('Time (ms)')
     plt.legend(markerscale=10)
-    plt.xlim(4100, 4200)
-    plt.ylim(0, 0.6)
+    # plt.xlim(4100, 4200)
+    # plt.ylim(0, 0.6)
     plt.grid()
 
     plt.savefig(output_filepath + 'cpu_time_trend_' + log_time + '.' + output_format,

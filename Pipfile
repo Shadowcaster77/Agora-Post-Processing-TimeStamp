@@ -9,6 +9,9 @@ regex = "*"
 scipy = "*"
 tabulate = "*"
 pillow = "*"
+pandas = "*"
+seaborn = "*"
+openpyxl = "*"
 
 [dev-packages]
 

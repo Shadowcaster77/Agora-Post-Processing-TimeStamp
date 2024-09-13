@@ -73,29 +73,36 @@ def plot(elapsed_time_np, log_path, output_format='png',
 
     elapsed_time_sorted = np.sort(elapsed_time_np)
     elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
-    plt.plot(elapsed_time_sorted, elapsed_time_prob,
-            marker='o',
-            linewidth=0)
+    plt.plot(elapsed_time_sorted, elapsed_time_prob, marker='o', linewidth=0)
 
     # print (np.sum(n*np.diff(bins))) # verify the integral is 1
 
     # Plot 3TTI deadline & mark statistics
-    plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
-    plt.axvline(x = two9_elapsed_time, color = 'b', linestyle='--', label = f'99% ({two9_elapsed_time:.3f} ms)')
-    plt.axvline(x = three9_elapsed_time, color = 'c', linestyle='--', label = f'99.9% ({three9_elapsed_time:.3f} ms)')
-    plt.axvline(x = four9_elapsed_time, color = 'y', linestyle='--', label = f'99.99% ({four9_elapsed_time:.3f} ms)')
-    plt.axvline(x = five9_elapsed_time, color = 'g', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
+    plt.axvline(x = 0.375, color = 'r', linestyle='--',
+                linewidth=3, label = f'3TTI (0.375 ms)')
+    plt.axvline(x = two9_elapsed_time, color = 'b', linestyle=':',
+                linewidth=3, label = f'99% ({two9_elapsed_time:.3f} ms)')
+    plt.axvline(x = three9_elapsed_time, color = 'c', linestyle=':',
+                linewidth=3, label = f'99.9% ({three9_elapsed_time:.3f} ms)')
+    plt.axvline(x = four9_elapsed_time, color = 'g', linestyle=':',
+                linewidth=3, label = f'99.99% ({four9_elapsed_time:.3f} ms)')
+    # plt.axvline(x = five9_elapsed_time, color = 'y', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
     # Adding a caption
-    plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=10, ha='center')
+    # plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=16, ha='center')
 
     # plt.xlim(min(elapsed_time_np), 0.4)
-    plt.xlim(0, max(elapsed_time_np))
-    title = 'Elapsed Time CDF'
-    plt.title(title, fontsize=titlesize)
-    plt.xlabel('elapsed time (ms)')
-    plt.ylabel('Num of frames')
-    plt.grid()
-    plt.legend()
+    # plt.xlim(0, max(elapsed_time_np))
+    plt.xlim(0.1, 10)
+    if (max(elapsed_time_np) > 10):
+        print(f'Warning: max elapsed time {max(elapsed_time_np)} > 10 ms')
+    plt.xscale("log")
+    # title = 'Elapsed Time CDF'
+    # plt.title(title, fontsize=titlesize)
+    plt.xlabel('Elapsed Time (ms)')
+    plt.ylabel('Probability')
+    # plt.grid()
+    plt.grid(True, which="both")
+    plt.legend(fontsize=16)
     plt.savefig(
         output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
         format=output_format,
