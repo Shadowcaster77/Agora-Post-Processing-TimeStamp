@@ -9,3 +9,6 @@
 
 # executables
 *.a
+
+# python temp files
+__pycache__/
