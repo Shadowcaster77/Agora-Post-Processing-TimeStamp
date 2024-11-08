@@ -34,13 +34,15 @@ int main() {
         auto end_time = std::chrono::high_resolution_clock::now();
 
         // Record time
-        auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+        auto duration_ns =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    end_time - start_time).count();
         time_us.push_back(duration_ns * 0.001);
 
         // C.print();
     }
-    
-    printf("\nAverage time spent on C (A * B): %.3f (us)\n", average(time_us));
+
+    printf("\nAverage time spent on C = A * B: %.3f (us)\n", average(time_us));
     // printf("List %ld occurrences: ", num_occ);
     // for (auto const& t: time_us) printf("%.3f, ", t);
     printf("\n");

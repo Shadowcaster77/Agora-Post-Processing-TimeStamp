@@ -21,8 +21,10 @@ std::complex<double> generateRandomComplex() {
 }
 
 // Function to generate a random complex square matrix of given size
-std::vector<std::vector<std::complex<double>>> generateRandomComplexMatrix(int size) {
-    std::vector<std::vector<std::complex<double>>> matrix(size, std::vector<std::complex<double>>(size));
+std::vector<std::vector<std::complex<double>>> generateRandomComplexMatrix(
+    int size) {
+    std::vector<std::vector<std::complex<double>>> matrix(
+            size, std::vector<std::complex<double>>(size));
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
             matrix[i][j] = generateRandomComplex();
@@ -38,7 +40,8 @@ std::vector<std::vector<std::complex<double>>> complexMatrixMultiplication(
 ) {
     int size = A.size();
 
-    std::vector<std::vector<std::complex<double>>> result(size, std::vector<std::complex<double>>(size, 0.0));
+    std::vector<std::vector<std::complex<double>>> result(
+        size, std::vector<std::complex<double>>(size, 0.0));
 
     for (int i = 0; i < size; ++i) {
         for (int j = 0; j < size; ++j) {
@@ -67,20 +70,25 @@ int main() {
 
     for (size_t i = 0; i < num_occ; i++) {
         // Init operands
-        std::vector<std::vector<std::complex<double>>> A = generateRandomComplexMatrix(n);
-        std::vector<std::vector<std::complex<double>>> B = generateRandomComplexMatrix(n);
+        std::vector<std::vector<std::complex<double>>> A =
+            generateRandomComplexMatrix(n);
+        std::vector<std::vector<std::complex<double>>> B =
+            generateRandomComplexMatrix(n);
 
         // Measure time
         auto start_time = std::chrono::high_resolution_clock::now();
-        std::vector<std::vector<std::complex<double>>> C = complexMatrixMultiplication(A, B);
+        std::vector<std::vector<std::complex<double>>> C =
+            complexMatrixMultiplication(A, B);
         auto end_time = std::chrono::high_resolution_clock::now();
 
         // Record time
-        auto duration_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time).count();
+        auto duration_ns =
+            std::chrono::duration_cast<std::chrono::nanoseconds>(
+                    end_time - start_time).count();
         time_us.push_back(duration_ns * 0.001);
     }
-    
-    printf("\nAverage time spent on C (A * B): %.3f (us)\n", average(time_us));
+
+    printf("\nAverage time spent on C = A * B: %.3f (us)\n", average(time_us));
     // printf("List %ld occurrences: ", num_occ);
     // for (auto const& t: time_us) printf("%.3f, ", t);
     printf("\n");
