@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import sys
 
 sys.path.append('..')
-from python import read_avg_evm_snr
+from analyzer import read_avg_evm_snr
 
 def get_evm_snr_seq(mod, pol, code_rate, snr_ideal):
     snr = []

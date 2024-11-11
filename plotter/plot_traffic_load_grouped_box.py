@@ -20,7 +20,7 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_elapsed_time
+from analyzer import read_elapsed_time
 
 DEADLINE_3TTI=0.375
 

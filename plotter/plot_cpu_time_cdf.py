@@ -13,7 +13,7 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_cpu_time
+from analyzer import read_cpu_time
 
 def plot(cpu_time_np, log_path, output_format='png',
          output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
@@ -51,39 +51,39 @@ def plot(cpu_time_np, log_path, output_format='png',
 
     edgecolor='black'
 
-    ################################################################################
+    ############################################################################
     # Plot
-    ################################################################################
+    ############################################################################
 
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-    # binwidth = 0.01
-    # l_bound = 1.2
-    # h_bound = 1.71
-    binwidth = 0.01
-    l_bound = min(cpu_time_np)
-    h_bound = max(cpu_time_np)
-    n, bins, _ = plt.hist(cpu_time_np, bins=np.arange(l_bound, h_bound, binwidth),
-                        #   density=True,
-                        #   color='white',
-                        edgecolor=edgecolor,
-                        linewidth=2,
-                        zorder=10)
+    num_samples = len(cpu_time_np)
+    cpu_time_sorted = np.sort(cpu_time_np)
+    cpu_time_prob = np.arange(1, num_samples + 1) / num_samples
+    plt.plot(cpu_time_sorted, cpu_time_prob,
+            marker='o',
+            linewidth=0)
 
-    # print (np.sum(n*np.diff(bins))) # verify the integral is 1
+    # Plot 3TTI deadline & mark statistics
+    two9_cpu_time = np.percentile(cpu_time_np, 99)
+    three9_cpu_time = np.percentile(cpu_time_np, 99.9)
+    four9_cpu_time = np.percentile(cpu_time_np, 99.99)
+    five9_cpu_time = np.percentile(cpu_time_np, 99.999)
+    plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
+    plt.axvline(x = two9_cpu_time, color = 'b', linestyle='--', label = f'99% ({two9_cpu_time:.3f} ms)')
+    plt.axvline(x = three9_cpu_time, color = 'y', linestyle='--', label = f'99.9% ({three9_cpu_time:.3f} ms)')
+    plt.axvline(x = four9_cpu_time, color = 'c', linestyle='--', label = f'99.99% ({four9_cpu_time:.3f} ms)')
+    plt.axvline(x = five9_cpu_time, color = 'g', linestyle='--', label = f'99.999% ({five9_cpu_time:.3f} ms)')
 
-    plt.xlim(l_bound, h_bound)
-    plt.ylim(0, 5e3)
-    # plt.yticks(np.arange(0, 11, 5))
-    # plt.xticks(np.arange(l_bound, h_bound, step=0.1))
-    title = 'CPU time distribution'
+    title = 'CPU Time CDF'
+    plt.xlim(0, max(cpu_time_sorted))
     plt.title(title, fontsize=titlesize)
     plt.xlabel('cpu time (ms)')
     plt.ylabel('Num of frames')
     plt.grid()
-    plt.savefig(output_filepath + 'cpu_time_dist_' + log_time + '.' +
-                output_format,
+    plt.legend()
+    plt.savefig(output_filepath + 'cpu_time_cdf_' + log_time + '_trim.' + output_format,
                 format=output_format,
                 bbox_inches='tight')
     plt.clf()

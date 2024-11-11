@@ -9,7 +9,7 @@ import numpy as np
 import sys
 
 sys.path.append('..')
-from python import read_cpu_time
+from analyzer import read_cpu_time
 
 ################################################################################
 # Font settings: tick size, linewidth, marker size

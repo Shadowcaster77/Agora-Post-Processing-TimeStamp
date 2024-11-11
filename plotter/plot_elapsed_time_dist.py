@@ -1,5 +1,5 @@
 """
-This script plot the elapsed time directly.
+This script plot the elapsed time distributions.
 
 Author: cstandy
 """
@@ -13,7 +13,7 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_elapsed_time
+from analyzer import read_elapsed_time
 
 def plot(elapsed_time_np, log_path, output_format='png',
          output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
@@ -51,23 +51,35 @@ def plot(elapsed_time_np, log_path, output_format='png',
 
     edgecolor='black'
 
-    ############################################################################
+    ################################################################################
     # Plot 
-    ############################################################################
+    ################################################################################
 
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-    plt.plot(elapsed_time_np, 'b.', markersize=1, label='Elapsed time')
+    binwidth = 0.01
+    l_bound = min(elapsed_time_np)
+    h_bound = max(elapsed_time_np)
+    n, bins, _ = plt.hist(elapsed_time_np, bins=np.arange(l_bound, h_bound, binwidth),
+                        #   density=True,
+                        #   color='white',
+                        edgecolor=edgecolor,
+                        linewidth=2,
+                        zorder=10)
 
-    # plt.ylim(0, 5e3)
+    # print (np.sum(n*np.diff(bins))) # verify the integral is 1
+
+    plt.xlim(l_bound, h_bound)
+    plt.ylim(0, 5e3)
+    # plt.yticks(np.arange(0, 11, 5))
     # plt.xticks(np.arange(l_bound, h_bound, step=0.1))
-    title = 'Elapsed time for each frame'
+    title = 'Elapsed time distribution'
     plt.title(title, fontsize=titlesize)
-    plt.xlabel('Frame index')
-    plt.ylabel('elapsed time (ms)')
+    plt.xlabel('elapsed time (ms)')
+    plt.ylabel('Num of frames')
     plt.grid()
-    plt.savefig(output_filepath + 'elapsed_time_trend_' + log_time + '.' + output_format,
+    plt.savefig(output_filepath + 'elapsed_time_dist_' + log_time + '.' + output_format,
                 format=output_format,
                 bbox_inches='tight')
     plt.clf()

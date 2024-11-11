@@ -1,5 +1,5 @@
 """
-This script plot the cpu time distributions.
+This script plot the cpu time directly.
 
 Author: cstandy
 """
@@ -13,15 +13,16 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_cpu_time
+from analyzer import read_cpu_time
 
-def plot(cpu_time_np, log_path, output_format='png',
+def plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np,
+         demul_time_np, decode_time_np, log_path, output_format='png',
          output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
 
     log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
     log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 
-    print('Plot elapsed time trend from log: {}'.format(log_name))
+    print('Plot cpu time trend from log: {}'.format(log_name))
 
     ############################################################################
     # Font settings: tick size, linewidth, marker size
@@ -52,38 +53,61 @@ def plot(cpu_time_np, log_path, output_format='png',
     edgecolor='black'
 
     ############################################################################
-    # Plot
+    # Plot 
     ############################################################################
+
+    # fig, ax = plt.subplots(7, figsize=(12, 12))
+    # plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+
+    # ax[0].plot(cpu_time_np, 'b.', markersize=1, label='cpu time (ms)')
+    # ax[0].legend()
+    # ax[0].grid()
+
+    # ax[1].plot(fft_time_np, 'g.', markersize=1, label='fft time (ms)')
+    # ax[1].legend()
+    # ax[1].grid()
+
+    # ax[2].plot(csi_time_np, 'r.', markersize=1, label='csi time (ms)')
+    # ax[2].legend()
+    # ax[2].grid()
+
+    # ax[3].plot(bw_time_np, 'c.', markersize=1, label='bw time (ms)')
+    # ax[3].legend()
+    # ax[3].grid()
+
+    # ax[4].plot(equal_time_np, 'm.', markersize=1, label='equal time (ms)')
+    # ax[4].legend()
+    # ax[4].grid()
+
+    # ax[5].plot(demul_time_np, 'y.', markersize=1, label='demul time (ms)')
+    # ax[5].legend()
+    # ax[5].grid()
+
+    # ax[6].plot(decode_time_np, 'k.', markersize=1, label='decode time (ms)')
+    # ax[6].legend()
+    # ax[6].grid()
+
+    # plt.tight_layout()
 
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-    num_samples = len(cpu_time_np)
-    cpu_time_sorted = np.sort(cpu_time_np)
-    cpu_time_prob = np.arange(1, num_samples + 1) / num_samples
-    plt.plot(cpu_time_sorted, cpu_time_prob,
-            marker='o',
-            linewidth=0)
-
-    # Plot 3TTI deadline & mark statistics
-    two9_cpu_time = np.percentile(cpu_time_np, 99)
-    three9_cpu_time = np.percentile(cpu_time_np, 99.9)
-    four9_cpu_time = np.percentile(cpu_time_np, 99.99)
-    five9_cpu_time = np.percentile(cpu_time_np, 99.999)
-    plt.axvline(x = 0.375, color = 'r', linestyle='--', label = f'3TTI (0.375 ms)')
-    plt.axvline(x = two9_cpu_time, color = 'b', linestyle='--', label = f'99% ({two9_cpu_time:.3f} ms)')
-    plt.axvline(x = three9_cpu_time, color = 'y', linestyle='--', label = f'99.9% ({three9_cpu_time:.3f} ms)')
-    plt.axvline(x = four9_cpu_time, color = 'c', linestyle='--', label = f'99.99% ({four9_cpu_time:.3f} ms)')
-    plt.axvline(x = five9_cpu_time, color = 'g', linestyle='--', label = f'99.999% ({five9_cpu_time:.3f} ms)')
-
-    title = 'CPU Time CDF'
-    plt.xlim(0, max(cpu_time_sorted))
-    plt.title(title, fontsize=titlesize)
-    plt.xlabel('cpu time (ms)')
-    plt.ylabel('Num of frames')
+    plt.plot(cpu_time_np, 'b.', markersize=1, label='cpu time (ms)')
+    plt.plot(fft_time_np, 'g.', markersize=1, label='fft time (ms)')
+    plt.plot(csi_time_np, 'r.', markersize=1, label='csi time (ms)')
+    plt.plot(bw_time_np, 'c.', markersize=1, label='bw time (ms)')
+    plt.plot(equal_time_np, 'm.', markersize=1, label='equal time (ms)')
+    plt.plot(demul_time_np, 'y.', markersize=1, label='demul time (ms)')
+    plt.plot(decode_time_np, 'k.', markersize=1, label='decode time (ms)')
+    plt.title('CPU Time Trend', fontsize=titlesize)
+    plt.xlabel('Frame index')
+    plt.ylabel('Time (ms)')
+    plt.legend(markerscale=10)
+    # plt.xlim(4100, 4200)
+    # plt.ylim(0, 0.6)
     plt.grid()
-    plt.legend()
-    plt.savefig(output_filepath + 'cpu_time_cdf_' + log_time + '_trim.' + output_format,
+
+    plt.savefig(output_filepath + 'cpu_time_trend_' + log_time + '.' + output_format,
                 format=output_format,
                 bbox_inches='tight')
     plt.clf()
@@ -115,6 +139,6 @@ if __name__ == '__main__':
     output_filepath = options.output_filepath # ../fig/
     xkcd = options.xkcd # default=False
 
-    cpu_time_np = plot_time_utils.read_cpu_time_from_file(log_path, trim, thres)[0]
-    plot(cpu_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
+    cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np, demul_time_np, decode_time_np = plot_time_utils.read_cpu_time_from_file(log_path, trim, thres)
+    plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np, demul_time_np, decode_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
     plot_time_utils.print_cpu_time_stat(cpu_time_np)

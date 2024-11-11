@@ -1,5 +1,5 @@
 """
-This script plot the cpu time directly.
+This script plot the elapsed time distributions.
 
 Author: cstandy
 """
@@ -13,16 +13,17 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_cpu_time
+from analyzer import read_elapsed_time
 
-def plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np,
-         demul_time_np, decode_time_np, log_path, output_format='png',
+DEADLINE_3TTI=0.375
+
+def plot(elapsed_time_np, log_path, output_format='png',
          output_filepath='../fig/', xkcd=False, trim=False, thres=1500):
 
     log_name = log_path.split("/")[-1] # e.g. 2023-07-19_16-35-36.log
     log_time = log_name.split(".")[0] # e.g. 2023-07-19_16-35-36
 
-    print('Plot cpu time trend from log: {}'.format(log_name))
+    print('Plot elapsed time trend from log: {}'.format(log_name))
 
     ############################################################################
     # Font settings: tick size, linewidth, marker size
@@ -53,63 +54,59 @@ def plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np,
     edgecolor='black'
 
     ############################################################################
-    # Plot 
+    # Get statistics
     ############################################################################
 
-    # fig, ax = plt.subplots(7, figsize=(12, 12))
-    # plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+    num_samples = len(elapsed_time_np)
+    two9_elapsed_time = np.percentile(elapsed_time_np, 99)
+    three9_elapsed_time = np.percentile(elapsed_time_np, 99.9)
+    four9_elapsed_time = np.percentile(elapsed_time_np, 99.99)
+    five9_elapsed_time = np.percentile(elapsed_time_np, 99.999)
+    pct_meet_deadline = np.sum(elapsed_time_np <= DEADLINE_3TTI) / num_samples * 100
 
-    # ax[0].plot(cpu_time_np, 'b.', markersize=1, label='cpu time (ms)')
-    # ax[0].legend()
-    # ax[0].grid()
-
-    # ax[1].plot(fft_time_np, 'g.', markersize=1, label='fft time (ms)')
-    # ax[1].legend()
-    # ax[1].grid()
-
-    # ax[2].plot(csi_time_np, 'r.', markersize=1, label='csi time (ms)')
-    # ax[2].legend()
-    # ax[2].grid()
-
-    # ax[3].plot(bw_time_np, 'c.', markersize=1, label='bw time (ms)')
-    # ax[3].legend()
-    # ax[3].grid()
-
-    # ax[4].plot(equal_time_np, 'm.', markersize=1, label='equal time (ms)')
-    # ax[4].legend()
-    # ax[4].grid()
-
-    # ax[5].plot(demul_time_np, 'y.', markersize=1, label='demul time (ms)')
-    # ax[5].legend()
-    # ax[5].grid()
-
-    # ax[6].plot(decode_time_np, 'k.', markersize=1, label='decode time (ms)')
-    # ax[6].legend()
-    # ax[6].grid()
-
-    # plt.tight_layout()
+    ############################################################################
+    # Plot 
+    ############################################################################
 
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
     plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-    plt.plot(cpu_time_np, 'b.', markersize=1, label='cpu time (ms)')
-    plt.plot(fft_time_np, 'g.', markersize=1, label='fft time (ms)')
-    plt.plot(csi_time_np, 'r.', markersize=1, label='csi time (ms)')
-    plt.plot(bw_time_np, 'c.', markersize=1, label='bw time (ms)')
-    plt.plot(equal_time_np, 'm.', markersize=1, label='equal time (ms)')
-    plt.plot(demul_time_np, 'y.', markersize=1, label='demul time (ms)')
-    plt.plot(decode_time_np, 'k.', markersize=1, label='decode time (ms)')
-    plt.title('CPU Time Trend', fontsize=titlesize)
-    plt.xlabel('Frame index')
-    plt.ylabel('Time (ms)')
-    plt.legend(markerscale=10)
-    # plt.xlim(4100, 4200)
-    # plt.ylim(0, 0.6)
-    plt.grid()
+    elapsed_time_sorted = np.sort(elapsed_time_np)
+    elapsed_time_prob = np.arange(1, num_samples + 1) / num_samples
+    plt.plot(elapsed_time_sorted, elapsed_time_prob, marker='o', linewidth=0)
 
-    plt.savefig(output_filepath + 'cpu_time_trend_' + log_time + '.' + output_format,
-                format=output_format,
-                bbox_inches='tight')
+    # print (np.sum(n*np.diff(bins))) # verify the integral is 1
+
+    # Plot 3TTI deadline & mark statistics
+    plt.axvline(x = 0.375, color = 'r', linestyle='--',
+                linewidth=3, label = f'3TTI (0.375 ms)')
+    plt.axvline(x = two9_elapsed_time, color = 'b', linestyle=':',
+                linewidth=3, label = f'99% ({two9_elapsed_time:.3f} ms)')
+    plt.axvline(x = three9_elapsed_time, color = 'c', linestyle=':',
+                linewidth=3, label = f'99.9% ({three9_elapsed_time:.3f} ms)')
+    plt.axvline(x = four9_elapsed_time, color = 'g', linestyle=':',
+                linewidth=3, label = f'99.99% ({four9_elapsed_time:.3f} ms)')
+    # plt.axvline(x = five9_elapsed_time, color = 'y', linestyle='--', label = f'99.999% ({five9_elapsed_time:.3f} ms)')
+    # Adding a caption
+    # plt.figtext(0.5, 0.5, f'{pct_meet_deadline:.2f}% meet 3TTI', fontsize=16, ha='center')
+
+    # plt.xlim(min(elapsed_time_np), 0.4)
+    # plt.xlim(0, max(elapsed_time_np))
+    plt.xlim(0.1, 10)
+    if (max(elapsed_time_np) > 10):
+        print(f'Warning: max elapsed time {max(elapsed_time_np)} > 10 ms')
+    plt.xscale("log")
+    # title = 'Elapsed Time CDF'
+    # plt.title(title, fontsize=titlesize)
+    plt.xlabel('Elapsed Time (ms)')
+    plt.ylabel('Probability')
+    # plt.grid()
+    plt.grid(True, which="both")
+    plt.legend(fontsize=16)
+    plt.savefig(
+        output_filepath + 'elapsed_time_cdf_' + log_time + '.' + output_format,
+        format=output_format,
+        bbox_inches='tight')
     plt.clf()
 
 if __name__ == '__main__':
@@ -117,7 +114,7 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option("-f", "--file", type="string", dest="file_name", help="File name as input", default="")
     parser.add_option("-t", "--trim", action="store_true", dest="trim", help="Trim the heading & trailing frames or not, default=False", default=False)
-    parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(read_cpu_time.THRES), default=read_cpu_time.THRES)
+    parser.add_option("--thres", type="int", dest="thres", help="Trim the n heading & n trailing frames, default={}".format(read_elapsed_time.THRES), default=read_elapsed_time.THRES)
     parser.add_option("--output_format", type="string", dest="output_format", help="Output format (png, svg, pdf), default=png", default="png")
     parser.add_option("--output_filepath", type="string", dest="output_filepath", help="Output file path, default=../fig/", default="../fig/")
     parser.add_option("--xkcd", action="store_true", dest="xkcd", help="Enable xkcd style, default=False", default=False)
@@ -139,6 +136,6 @@ if __name__ == '__main__':
     output_filepath = options.output_filepath # ../fig/
     xkcd = options.xkcd # default=False
 
-    cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np, demul_time_np, decode_time_np = plot_time_utils.read_cpu_time_from_file(log_path, trim, thres)
-    plot(cpu_time_np, fft_time_np, csi_time_np, bw_time_np, equal_time_np, demul_time_np, decode_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
-    plot_time_utils.print_cpu_time_stat(cpu_time_np)
+    elapsed_time_np = plot_time_utils.read_elapsed_time_from_file(log_path, trim, thres)
+    plot(elapsed_time_np, log_path, output_format, output_filepath, xkcd, trim, thres)
+    plot_time_utils.print_elapsed_time_stat(elapsed_time_np)

@@ -1,11 +1,12 @@
 """
-This script plot the elapsed time across traffic loads.
+This script plot the maximum traffic load supported in each configuration in 
+a groupped bar chart.
 
 Author: cstandy
 """
 
 import matplotlib.pyplot as plt
-from matplotlib.ticker import FuncFormatter
+import matplotlib.ticker as mtick
 from optparse import OptionParser
 import numpy as np
 import sys
@@ -13,7 +14,7 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_elapsed_time
+from analyzer import read_elapsed_time
 
 DEADLINE_3TTI=0.375
 
@@ -47,54 +48,49 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     # Get statistics
     ############################################################################
 
-    # log_path = '/home/ct297/workspace/agora_single-core-sim-hw-ldpc/log/2024-02-29_15-35-31.log'
-    # elapsed_time_np_1x1_50mhz = plot_time_utils.read_elapsed_time_from_file(log_path, True, 1500)
-    # log_path = '/home/ct297/workspace/agora_single-core-sim-hw-ldpc/log/2024-02-29_15-31-07.log'
-    # elapsed_time_np_2x2_50mhz = plot_time_utils.read_elapsed_time_from_file(log_path, True, 1500)
+    mimo_size = ['1x1', '2x2', '4x4']
+    traffic_load = {
+        '100 MHz': (1, 1, 0.375),
+        '200 MHz': (1, 0.4375, 0),
+        '400 MHz': (0.5, 0, 0),
+    }
 
-    num_samples = 100000
+    hatches = ['/', 'o', '.']
 
     ############################################################################
     # Plot 
     ############################################################################
 
+    x = np.arange(len(mimo_size))  # the label locations
+    width = 0.25  # the width of the bars
+    multiplier = 0
+
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
-    plt.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
-    data_1x1_100mhz = [0.0960, 0.1357, 0.1812, 0.2152]
-    data_1x1_200mhz = [0.1245, 0.2172, 0.2842, 0.3646]
-    data_2x2_100mhz = [0.1448, 0.2225, 0.3126, 0.3154]
-    data_1x1_400mhz = [0.1679, 0.3429, 0.5517, 0.8260]
-    data_2x2_200mhz = [0.2337, 0.3798, 0.5529, 0.8862]
-    data_4x4_100mhz = [0.2536, 0.4885, 0.8711, 0.9330]
-
-    plt.plot(data_1x1_100mhz, marker='o', label='1x1 100MHz', linewidth=3, markersize=10)
-    plt.plot(data_1x1_200mhz, marker='o', label='1x1 200MHz', linewidth=3, markersize=10)
-    plt.plot(data_2x2_100mhz, marker='o', label='2x2 100MHz', linewidth=3, markersize=10)
-    plt.plot(data_1x1_400mhz, marker='o', label='1x1 400MHz', linewidth=3, markersize=10)
-    plt.plot(data_2x2_200mhz, marker='o', label='2x2 200MHz', linewidth=3, markersize=10)
-    plt.plot(data_4x4_100mhz, marker='o', label='4x4 100MHz', linewidth=3, markersize=10)
-
-    # Plot 3TTI deadline
-    plt.axhline(y = 0.375, color = 'r', linestyle='--', linewidth=3)
-    plt.figtext(0.22, 0.34, f'0.375 msec', fontsize=24, ha='center')
+    for attribute, val in traffic_load.items():
+        offset = width * multiplier
+        rects = ax.bar(x + offset, val, width, label=attribute, hatch = hatches[multiplier])
+        ax.bar_label(rects, padding=3, fmt='{:.0%}')
+        multiplier += 1
 
     # plt.xlim(min(elapsed_time_np), 0.4)
-    # plt.xlim(0, 2)
+    # plt.xlim(0, 1.6)
     # plt.xlim(0.1, 10)
     # plt.ylim(10e-6, 1)
+    plt.xticks(x + width, mimo_size)
+    ax.yaxis.set_major_formatter(mtick.PercentFormatter(1.0))
     # plt.yticks([10e-6, 10e-5, 10e-4, 10e-3, 10e-2, 10e-1, 1])
     # plt.xscale("log")
     # plt.yscale("log")
     # title = 'Elapsed Time CDF'
     # plt.title(title, fontsize=titlesize)
-    plt.xlabel('Traffic Loads')
-    plt.ylabel('Elapsed Time (ms)')
-    # plt.grid()
-    plt.grid(True, which="both")
-    plt.legend(fontsize=24)
+    plt.xlabel('MIMO Dimension')
+    plt.ylabel('Traffic Loads')
+    plt.grid()
+    # plt.grid(True, which="both")
+    plt.legend(fontsize=20)
     plt.savefig(
-        output_filepath + 'elapsed_time_traffic_loads.' + output_format,
+        output_filepath + 'traffic_load_bar.' + output_format,
         format=output_format,
         bbox_inches='tight')
     plt.clf()

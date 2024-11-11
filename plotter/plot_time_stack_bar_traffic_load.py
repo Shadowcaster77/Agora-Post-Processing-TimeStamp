@@ -1,6 +1,6 @@
 """
-This script plot the CPU time breakdown of our work under MCS10/MCS17 in a
-groupped bar chart.
+This script plot the maximum traffic load supported in each configuration in 
+a stacked bar chart.
 
 Author: cstandy
 """
@@ -18,7 +18,7 @@ import sys
 import plot_time_utils
 
 sys.path.append('..')
-from python import read_elapsed_time
+from analyzer import read_elapsed_time
 
 DEADLINE_3TTI=0.375
 
@@ -44,7 +44,7 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     # plt.rcParams.update({'font.size': 16})
     plt.rcParams.update({'hatch.linewidth': 2})
 
-    FIG_SIZE_W = 5
+    FIG_SIZE_W = 12
     FIG_SIZE_H = 6
 
     edgecolor='black'
@@ -60,29 +60,17 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     # Get statistics
     ############################################################################
 
-    # 4x4, 100 MHz, 20 cores
-    # MCS10: 2024-03-10_22-14-54.log
-    # MCS17: 2024-03-10_20-52-48.log
-    config = ['MCS10', 'MCS17']
-    x_values = np.arange(len(config))
-
-#     # average frame time
-#     fft_time =     [0.0066, 0.0064]
-#     csi_time =     [0.0023, 0.0022]
-#     bw_time =      [0.0024, 0.0023]
-#     eq_time =      [0.0088, 0.0087]
-#     demul_time =   [0.0070, 0.0075]
-#     decode_time =  [0.0763, 0.1245]
-#     elapsed_time = [0.2343, 0.2862]
+    config = ['1x1\n100M', '1x1\n200M', '2x2\n100M',
+              '1x1\n400M\n50%', '2x2\n200M\n44%', '4x4\n100M\n38%']
 
     # 99.9% frame time
-    fft_time =     [0.0066, 0.0064]
-    csi_time =     [0.0024, 0.0024]
-    bw_time =      [0.0023, 0.0023]
-    eq_time =      [0.0084, 0.0085]
-    demul_time =   [0.0071, 0.0073]
-    decode_time =  [0.0944, 0.1583]
-    elapsed_time = [0.2886, 0.3453]
+    fft_time =     [0.0478, 0.0890, 0.0545, 0.0941, 0.0766, 0.0388]
+    csi_time =     [0.0032, 0.0073, 0.0100, 0.0131, 0.0309, 0.0384]
+    bw_time =      [0.0027, 0.0059, 0.0046, 0.0089, 0.0184, 0.0394]
+    eq_time =      [0.0251, 0.0451, 0.0717, 0.0436, 0.0518, 0.0678]
+    demul_time =   [0.0547, 0.1053, 0.0690, 0.1027, 0.0951, 0.0514]
+    decode_time =  [0.0483, 0.0688, 0.0698, 0.0716, 0.0638, 0.0598]
+    elapsed_time = [0.2149, 0.3578, 0.3120, 0.3539, 0.3652, 0.3335]
     misc = []
     for i in range(len(config)):
         misc.append(elapsed_time[i] - sum([fft_time[i], csi_time[i], bw_time[i], eq_time[i], demul_time[i], decode_time[i]]))
@@ -92,94 +80,93 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     ############################################################################
 
     x = np.arange(len(config))  # the label locations
-    width = 0.4  # the width of the bars
+    width = 0.25  # the width of the bars
     multiplier = 0
 
     fig, ax = plt.subplots(figsize=(FIG_SIZE_W, FIG_SIZE_H))
 
     # Draw the hatch
-    plt.bar(x_values,fft_time, label='FFT',
+    plt.bar(config, fft_time, label='FFT',
             zorder=3, hatch=hatches[0], color='white',
-            width=width, edgecolor='tab:blue', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:blue', linewidth=linewidth)
     bottom = fft_time
-    plt.bar(x_values,csi_time, bottom=bottom, label='CSI',
+    plt.bar(config, csi_time, bottom=bottom, label='CSI',
             zorder=3, hatch=hatches[1], color='white',
-            width=width, edgecolor='tab:brown', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:brown', linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, csi_time)]
-    plt.bar(x_values,bw_time, bottom=bottom, label='Precode',
+    plt.bar(config, bw_time, bottom=bottom, label='Precode',
             zorder=3, hatch=hatches[2], color='white',
-            width=width, edgecolor='tab:purple', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:purple', linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, bw_time)]
-    plt.bar(x_values,eq_time, bottom=bottom, label='EQ',
+    plt.bar(config, eq_time, bottom=bottom, label='Equal',
             zorder=3, hatch=hatches[3], color='white',
-            width=width, edgecolor='tab:orange', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:orange', linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, eq_time)]
-    plt.bar(x_values,demul_time, bottom=bottom, label='Demod',
+    plt.bar(config, demul_time, bottom=bottom, label='Demod',
             zorder=3, hatch=hatches[4], color='white',
-            width=width, edgecolor='tab:green', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:green', linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, demul_time)]
-    plt.bar(x_values,decode_time, bottom=bottom, label='Decode',
+    plt.bar(config, decode_time, bottom=bottom, label='Decode',
             zorder=3, hatch=hatches[5], color='white',
-            width=width, edgecolor='tab:red', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:red', linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, decode_time)]
-    plt.bar(x_values,misc, bottom=bottom, label='Misc',
+    plt.bar(config, misc, bottom=bottom, label='Misc',
             zorder=3, hatch=hatches[6], color='white',
-            width=width, edgecolor='tab:gray', linewidth=linewidth)
+            width=bar_width, edgecolor='tab:gray', linewidth=linewidth)
 
     # Draw the bar
-    plt.bar(x_values,fft_time,
+    plt.bar(config, fft_time, 
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor,linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor,linewidth=linewidth)
     bottom = fft_time
-    plt.bar(x_values,csi_time, bottom=bottom,
+    plt.bar(config, csi_time, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, csi_time)]
-    plt.bar(x_values,bw_time, bottom=bottom,
+    plt.bar(config, bw_time, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, bw_time)]
-    plt.bar(x_values,eq_time, bottom=bottom,
+    plt.bar(config, eq_time, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, eq_time)]
-    plt.bar(x_values,demul_time, bottom=bottom,
+    plt.bar(config, demul_time, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, demul_time)]
-    plt.bar(x_values,decode_time, bottom=bottom,
+    plt.bar(config, decode_time, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
     bottom = [x + y for x, y in zip(bottom, decode_time)]
-    plt.bar(x_values,misc, bottom=bottom,
+    plt.bar(config, misc, bottom=bottom,
             zorder=3, color='none',
-            width=width, edgecolor=edgecolor, linewidth=linewidth)
+            width=bar_width, edgecolor=edgecolor, linewidth=linewidth)
 
     # Plot 3TTI deadline & mark statistics
-    plt.axhline(y = 0.375, color = 'r', linestyle='--', linewidth=3, zorder=10)
-    plt.figtext(0.375, 0.77, f'0.375 msec', fontsize=24, ha='center')
+    plt.axhline(y = 0.375, color = 'r', linestyle='--', linewidth=3)
+    plt.figtext(0.205, 0.70, f'0.375 msec', fontsize=22, ha='center',
+                color='r')
 
-    plt.xlim(-0.5, 1.5)
-    plt.ylim(0, 0.4)
-    plt.xticks(x_values, config) # bring back the original x-axis labels
+    plt.ylim(0, 0.45)
     plt.ylabel('Time (msec)')
     plt.grid(zorder=0, linestyle='--')
-    plt.legend(fontsize=24, loc='upper right', ncol=1, fancybox=True, frameon=True,
-               bbox_to_anchor=(1.31, 0.9))
-    handles, labels = plt.gca().get_legend_handles_labels()
-    plt.legend().remove()
+    plt.legend(fontsize=22, loc='upper right', ncol=4, fancybox=True, frameon=True,
+               bbox_to_anchor=(1.01, 1.15))
+#     handles, labels = plt.gca().get_legend_handles_labels()
+#     plt.legend().remove()
     plt.savefig(
-        output_filepath + 'time_stacked_bar_mcs.' + output_format,
+        output_filepath + 'time_stacked_bar_traffic_load.' + output_format,
         format=output_format,
         bbox_inches='tight')
     
-    # Create a separate legend plot
-    legend_fig = plt.figure(figsize=(6, 0.5))
-    legend = legend_fig.legend(handles, labels, fontsize=20, loc='center', frameon=False, ncol=1)
-    legend_fig.savefig(
-        output_filepath + 'legend_time_stacked_bar.' + output_format,
-        format=output_format,
-        bbox_inches='tight')
+    # # Create a separate legend plot
+    # legend_fig = plt.figure(figsize=(6, 0.5))
+    # legend = legend_fig.legend(handles, labels, fontsize=20, loc='center', frameon=False, ncol=3)
+    # legend_fig.savefig(
+    #     output_filepath + 'legend_time_stacked_bar.' + output_format,
+    #     format=output_format,
+    #     bbox_inches='tight')
     plt.clf()
 
 if __name__ == '__main__':

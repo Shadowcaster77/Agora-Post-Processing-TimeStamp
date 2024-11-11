@@ -6,8 +6,8 @@ import numpy as np
 import sys
 
 sys.path.append('..')
-from python import read_elapsed_time
-from python import read_cpu_time
+from analyzer import read_elapsed_time
+from analyzer import read_cpu_time
 
 ################################################################################
 # Read from log and return numpy array
