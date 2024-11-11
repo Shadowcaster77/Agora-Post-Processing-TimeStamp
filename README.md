@@ -41,6 +41,10 @@ So far, we primarily work on testing Armadillo, a C++ based matrix operation lib
 We have some helper functions that automate running Agora.
 These scripts are placed under `script/`, but should be run along with Agora programs.
 
+## Traffic Estimator
+
+A Python script under `estimator/` can help calculate the data rates after each DSP block.
+
 ## Reference
 
 * If you have any question for this utility repo, please contact [@cstandy](https://github.com/cstandy).
