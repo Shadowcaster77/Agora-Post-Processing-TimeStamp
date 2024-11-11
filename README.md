@@ -1,26 +1,25 @@
-# Utility Scripts for Agora
+# Utility Scripts for Agora/Savannah
 
-This repo contains files to process the time stamps by running Agora.
+This repo contains scripts to process the time stamps recorded when Agora/Savannah is executed.
 
-## Basic
+## Environment Management
 
-Use `pipenv` as the virtual env to run this project.
+We use `pipenv` as the virtual environment to manage the package dependency within this project.
 
 1. `pip install pipenv` if you do not have `pipenv` yet.
 2. `pipenv shell` to initiate the env.
 3. `pipenv install` to install the required Python packages.
 
-## General Agora Post-processing
+## General Post-processing
 
-* Python scripts are under `python/`, including
-    * Post-processing (parsing) the `.txt` output from Agora's `stdout`.
-    * Further plotting scripts using the outputs of these parsers.
-* Put the standard output under `log/`.
+1. Use `mvp_test.sh` to run different mode of Agora/Savannah, and the standard output will be recorded as log files.
+2. Python scripts under `analyzer/` process (parse) the `.log` output from Agora's `stdout`. The most common functions are reading CPU and elapsed times.
+3. Plotting scripts under `plotter/` use the function/output of these parsers.
 
 ## Generate Plots
 
-* Put raw data under `data/`.
-* Run the scripts under `plot/`.
+* Put raw data under `data/` or the standard output under `log/`.
+* Run the scripts under `plotter/`. Some plotters have hard-coded log path that needs to be modified.
 * Find the figures under `fig/`.
 
 ### Plotting results from WiNTECH 23
@@ -46,3 +45,4 @@ These scripts are placed under `script/`, but should be run along with Agora pro
 
 * If you have any question for this utility repo, please contact [@cstandy](https://github.com/cstandy).
 * The GitHub repo for [Agora](https://github.com/Agora-wireless/Agora/).
+* The GitHub repor for [Savannah](https://github.com/functions-lab/Savannah).
