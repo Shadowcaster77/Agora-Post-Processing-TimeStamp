@@ -9,49 +9,62 @@ import struct
 import numpy as np
 import matplotlib.pyplot as plt
 
-file_prefix = '../../savannah_isac/files/sensing/sensing_fft_'
-file_postfix = '_sc0-1024.bin'
-frame_range = range(0, 200)
-fig_name = 'fft_tf.png'
+file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_midfix = '_sym'
+file_postfix = '_sc0_size1024.bin'
+num_frame = 200
+num_symbol_per_frame = 5
+fig_name = 'fft_tf_sym.png'
+
+'''
+filename format: sensing_fft_
+                 frame<frame_index>_
+                 sym<symbol_id>_
+                 sc<subcarrier_id>_
+                 size<fft_size>.bin
+'''
 
 real_parts = []
 imag_parts = []
 comp_values = []
 abs_values = []
 
-for frame_index in frame_range:
-    file_name = file_prefix + str(frame_index) + file_postfix
+for frame_index in range(0, num_frame):
+    for symbol_index in range(0, num_symbol_per_frame):
+        file_name = file_prefix + str(frame_index) + file_midfix + str(symbol_index) + file_postfix
 
-    # Read binary data
-    complex_values = []
-    try:
-        with open(file_name, "rb") as file:
-            while True:
-                # Read two 32-bit floats (real and imaginary parts)
-                data = file.read(8)  # 4 bytes for real, 4 bytes for imaginary
-                if not data:
-                    break
-                # Unpack the binary data
-                real, imag = struct.unpack('ff', data)  # 'ff' means two floats
-                complex_values.append(complex(real, imag))
-    except FileNotFoundError:
-        print(f"Error: File {file_name} not found.")
-        exit(1)
+        # Read binary data
+        complex_values = []
+        try:
+            with open(file_name, "rb") as file:
+                while True:
+                    # Read two 32-bit floats (real and imaginary parts)
+                    data = file.read(8)  # 4 bytes for real, 4 bytes for imaginary
+                    if not data:
+                        break
+                    # Unpack the binary data
+                    real, imag = struct.unpack('ff', data)  # 'ff' means two floats
+                    complex_values.append(complex(real, imag))
+        except FileNotFoundError:
+            print(f"Error: File {file_name} not found.")
+            exit(1)
 
-    # Separate real, imaginary, and absolute parts
-    real_parts.append([c.real for c in complex_values])
-    imag_parts.append([c.imag for c in complex_values])
-    abs_values.append([abs(c) for c in complex_values])
-    comp_values.append(complex_values)
+        # Separate real, imaginary, and absolute parts
+        real_parts.append([c.real for c in complex_values])
+        imag_parts.append([c.imag for c in complex_values])
+        abs_values.append([abs(c) for c in complex_values])
+        comp_values.append(complex_values)
 
 ###
 # Print basic info
-print(f"{len(real_parts)} frames, ")
+print(f"{num_frame} frames, {num_symbol_per_frame} symbols per frame, ")
+print(f"{len(real_parts)} symbols, ")
 print(f"each with {len(comp_values[0])} complex numbers.")
 
 ###
 
-time = np.linspace(0, 200, 201)
+num_symbol = num_frame * num_symbol_per_frame
+time = np.linspace(0, num_symbol, num_symbol + 1)
 freq = np.linspace(0, len(comp_values[0]), len(comp_values[0])+1)
 data = np.array(abs_values)
 
@@ -63,6 +76,6 @@ plt.pcolormesh(freq, time, 10 * np.log10(data), shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
 plt.title("Spectrogram", size=28)
 plt.xlabel("Subcarrier Index", size=24)
-plt.ylabel("Frame Index", size=24)
+plt.ylabel("Symbol Index", size=24)
 plt.tight_layout()
 plt.savefig(fig_name)

@@ -7,13 +7,13 @@
 import struct
 import matplotlib.pyplot as plt
 
-# file_name = '../../savannah_isac/files/sensing/sensing_raw_0_sc0-1024.bin'
+# file_name = '../../savannah_isac/files/sensing/sensed_raw_frame0_sym0_sc0_size1024.bin'
 # fig_name = 'raw_iq-1.png'
 
-# file_name = '../../savannah_isac/files/sensing/sensing_fft_0_sc0-1024.bin'
+# file_name = '../../savannah_isac/files/sensing/sensed_fft_frame0_sym0_sc0_size1024.bin'
 # fig_name = 'fft_iq-1.png'
 
-file_name = '../../savannah_isac/files/sensing/sensing_csi_0_sc0-1024.bin'
+file_name = '../../savannah_isac/files/sensing/sensed_csi_frame0_sc0_size1024.bin'
 fig_name = 'csi_iq-1.png'
 
 # Read binary data
