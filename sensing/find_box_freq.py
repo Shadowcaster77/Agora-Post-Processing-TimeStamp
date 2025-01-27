@@ -83,8 +83,8 @@ print(f"Max end = {max_end}")
 
 # Find new box edge from the power change rate
 power_change_rate = np.diff(abs_values[idx])/abs_values[idx][:-1]
-max_start = np.argmax(power_change_rate)
-max_end = np.argmin(power_change_rate[max_end:]) + max_end
+max_start = np.argmax(power_change_rate[:max_start]) # search from center to left
+max_end = np.argmin(power_change_rate[max_end:]) + max_end # search from center to right
 
 print(f"Max average power = {max_avg_power}")
 print(f"Max start = {max_start}")
