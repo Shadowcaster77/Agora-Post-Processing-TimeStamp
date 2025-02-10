@@ -4,17 +4,17 @@
 # Author: Chung-Hsuan Tung
 ################################################################################
 
-
-import struct
 import numpy as np
 import matplotlib.pyplot as plt
+
+import helper
 
 file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 200
 num_symbol_per_frame = 5
-fig_name = 'fft_tf_sym.png'
+fig_name = 'tf_sym.png'
 
 '''
 filename format: sensing_fft_
@@ -34,20 +34,7 @@ for frame_index in range(0, num_frame):
         file_name = file_prefix + str(frame_index) + file_midfix + str(symbol_index) + file_postfix
 
         # Read binary data
-        complex_values = []
-        try:
-            with open(file_name, "rb") as file:
-                while True:
-                    # Read two 32-bit floats (real and imaginary parts)
-                    data = file.read(8)  # 4 bytes for real, 4 bytes for imaginary
-                    if not data:
-                        break
-                    # Unpack the binary data
-                    real, imag = struct.unpack('ff', data)  # 'ff' means two floats
-                    complex_values.append(complex(real, imag))
-        except FileNotFoundError:
-            print(f"Error: File {file_name} not found.")
-            exit(1)
+        complex_values = helper.read_complex_samples(file_name)
 
         # Separate real, imaginary, and absolute parts
         real_parts.append([c.real for c in complex_values])
