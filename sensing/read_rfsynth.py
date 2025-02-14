@@ -42,14 +42,18 @@ f, t_spec, Sxx = signal.spectrogram(
     complex_values, fs=samp_rate, window='hamming', nperseg=1024, noverlap=512,
     mode='magnitude')
 f_mhz = f / 1e6
+t_ms = t_spec * 1e3
 
 plt.figure(figsize=(8, 6))
-plt.pcolormesh(np.fft.fftshift(f_mhz), t_spec, 
+plt.rc('axes', labelsize=28)    # fontsize of the x and y labels
+plt.rc('xtick', labelsize=20)   # fontsize of the tick labels
+plt.rc('ytick', labelsize=20)   # fontsize of the tick labels
+plt.pcolormesh(np.fft.fftshift(f_mhz), t_ms, 
                np.fft.fftshift(10 * np.log10(Sxx.T + 1e-12), axes=(1,)),
                shading='auto')  # Convert to dB
 plt.colorbar(label="Power Spectral Density (dB)")
 plt.xlabel("Frequency (MHz)")
-plt.ylabel("Time (s)")
-plt.title("Spectrogram of Received Signal")
+plt.ylabel("Time (ms)")
+plt.title("Spectrogram (RFSynth)", size=28)
 plt.tight_layout()
 plt.savefig('rfsynth_spectrogram_' + filename + '.png')
