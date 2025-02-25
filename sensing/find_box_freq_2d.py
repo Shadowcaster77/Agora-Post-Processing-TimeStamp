@@ -11,6 +11,7 @@ import matplotlib.patches as patches
 from itertools import product
 from functools import cmp_to_key
 from scipy.ndimage import convolve
+from scipy.ndimage import laplace
 
 import helper
 
@@ -149,23 +150,39 @@ def clean_area(mat, x1, y1, x2, y2):
 # Find new box edge from the power change rate
 
 # Manually tuned threshold
-thres_power_rate_change_v = 0.1
-thres_power_rate_change_h = 0.006
-# vertical 0.1
-# horizontal 0.008
+thres_power_rate_change_v = 0.13
+thres_power_rate_change_h = 0.008
+# vertical 0.13
+# horizontal 0.004
+
+print('thres_power_rate_change_v = {}'.format(thres_power_rate_change_v))
+print('thres_power_rate_change_h = {}'.format(thres_power_rate_change_h))
 
 # Smooth the spectrogram with moving average
-data_abs_smooth = convolve(data_abs, np.ones((5, 50)) / 2500, mode='constant')
-assert data_abs_smooth.shape == data_abs.shape, 'shape mismatch'
+data_abs_smooth_v = convolve(data_abs, np.ones((5, 50)) / 250, mode='constant')
+data_abs_smooth_h = convolve(data_abs, np.ones((10, 100)) / 1000, mode='constant')
+# data_abs_smooth_h = convolve(data_abs_smooth_h, np.ones((1, 10)) / 10, mode='constant')
+# data_abs_smooth_h = convolve(data_abs_smooth_h, np.ones((1, 50)) / 50, mode='constant')
+# data_abs_smooth = convolve(data_abs_smooth, np.ones((1, 50)) / 50, mode='constant')
+# data_abs_smooth = laplace(data_abs_smooth, mode='constant')
+assert data_abs_smooth_v.shape == data_abs.shape, 'v shape mismatch'
+assert data_abs_smooth_h.shape == data_abs.shape, 'h shape mismatch'
 
 # Use dB so that negative edges are more obvious
-data_abs_smooth = 10 * np.log10(data_abs_smooth)
-power_rate_change_v = np.diff(data_abs_smooth, axis=0) / data_abs_smooth[:-1]
-power_rate_change_h = np.diff(data_abs_smooth, axis=1) / data_abs_smooth[:, :-1]
+data_abs_smooth_v = 10 * np.log10(data_abs_smooth_v)
+data_abs_smooth_h = 10 * np.log10(data_abs_smooth_h)
+power_rate_change_v = np.diff(data_abs_smooth_v, axis=0) / data_abs_smooth_v[:-1]
+power_rate_change_h = np.diff(data_abs_smooth_h, axis=1) / data_abs_smooth_h[:, :-1]
+# power_rate_change_v = np.diff(data_abs_smooth, axis=0)
+# power_rate_change_h = np.diff(data_abs_smooth, axis=1)
 
 # Use absolute value so that threshold can be applied straightforwardly
 prc_v_abs = np.abs(power_rate_change_v)
 prc_h_abs = np.abs(power_rate_change_h)
+# prc_v_abs = power_rate_change_v
+# prc_h_abs = power_rate_change_h
+prc_v = power_rate_change_v
+prc_h = power_rate_change_h
 
 def find_edge(prc_v, prc_h, thres_v, thres_h, x, y):
     edge = {'up': x, 'down': x, 'left': y, 'right': y}
@@ -175,7 +192,7 @@ def find_edge(prc_v, prc_h, thres_v, thres_h, x, y):
             edge['up'] = i
             break
     for i in range(x, -1, -1):
-        if prc_v[i][y] > thres_v:
+        if prc_v[i][y] < -thres_v:
             edge['down'] = i
             break
     # horizontal edges
@@ -184,7 +201,7 @@ def find_edge(prc_v, prc_h, thres_v, thres_h, x, y):
             edge['right'] = j
             break
     for j in range(y, -1, -1):
-        if prc_h[x][j] > thres_h:
+        if prc_h[x][j] < -thres_h:
             edge['left'] = j
             break
     return edge
@@ -219,42 +236,42 @@ print('thres_energy = {}'.format(thres_energy))
 boxes = []
 box_centers = []
 
-# Iterate through kernels
-for (x, y) in tb_prod_list:
-    area = x * y
-    for i in range(0, num_symbol):
-        for j in range(0, fft_size):
-            if i+x < num_symbol and j+y < fft_size:
-                # Calculate the energy box
-                energy_sum = get_sum_in_area(ps_abs, i, j, i+x, j+y)
-                energy_avg = energy_sum / area
-                if energy_avg > thres_energy:
-                    print('energy_sum = {}'.format(energy_sum))
-                    # print('energy_avg = {}'.format(energy_avg))
-                    print('kernel size = ({}, {})'.format(x, y))
-                    # boxes.append([i, j, i+x, j+y])
-                    box_centers.append([i+x//2, j+y//2])
-                    # Identify the box edge via power change rate
-                    edges = find_edge(prc_v_abs, prc_h_abs,
-                                      thres_power_rate_change_v,
-                                      thres_power_rate_change_h,
-                                      i+x//2, j+y//2)
-                    boxes.append([edges['down'], edges['left'], edges['up'],
-                                  edges['right']])
-                    # Remove found energy box
-                    ps_abs = clean_area(abs_values, edges['down'],
-                                        edges['left'], edges['up'],
-                                        edges['right'])
-                # print('running with energy sum = {}'.format(energy_sum))
-    # print('kernel size = ({}, {})'.format(x, y))
+# # Iterate through kernels
+# for (x, y) in tb_prod_list:
+#     area = x * y
+#     for i in range(0, num_symbol):
+#         for j in range(0, fft_size):
+#             if i+x < num_symbol and j+y < fft_size:
+#                 # Calculate the energy box
+#                 energy_sum = get_sum_in_area(ps_abs, i, j, i+x, j+y)
+#                 energy_avg = energy_sum / area
+#                 if energy_avg > thres_energy:
+#                     print('energy_sum = {}'.format(energy_sum))
+#                     # print('energy_avg = {}'.format(energy_avg))
+#                     print('kernel size = ({}, {})'.format(x, y))
+#                     # boxes.append([i, j, i+x, j+y])
+#                     box_centers.append([i+x//2, j+y//2])
+#                     # Identify the box edge via power change rate
+#                     edges = find_edge(prc_v, prc_h,
+#                                       thres_power_rate_change_v,
+#                                       thres_power_rate_change_h,
+#                                       i+x//2, j+y//2)
+#                     boxes.append([edges['down'], edges['left'], edges['up'],
+#                                   edges['right']])
+#                     # Remove found energy box
+#                     ps_abs = clean_area(abs_values, edges['down'],
+#                                         edges['left'], edges['up'],
+#                                         edges['right'])
+#                 # print('running with energy sum = {}'.format(energy_sum))
+#     # print('kernel size = ({}, {})'.format(x, y))
 
-print('number of boxes = {}'.format(len(boxes)))
-# print(boxes)
+# print('number of boxes = {}'.format(len(boxes)))
+# # print(boxes)
 
-stored_boxes = np.array(boxes)
-stored_centers = np.array(box_centers)
-np.save('stored_centers.npy', stored_centers)
-np.save('stored_boxes.npy', stored_boxes)
+# stored_boxes = np.array(boxes)
+# stored_centers = np.array(box_centers)
+# np.save('stored_centers.npy', stored_centers)
+# np.save('stored_boxes.npy', stored_boxes)
 
 # read_boxes = np.load('stored_boxes.npy')
 # read_centers = np.load('stored_centers.npy')
@@ -277,12 +294,13 @@ fig, ax = plt.subplots(figsize=(8, 6))
 plt.rc('legend', fontsize=20)    # fontsize of the legend
 im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 # im = ax.pcolormesh(freq, time, data_abs, shading='flat')
-# im = ax.pcolormesh(freq, time, data_abs_smooth, shading='flat')
+im = ax.pcolormesh(freq, time, data_abs_smooth_v, shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], power_rate_change_v, shading='flat')
 # im = ax.pcolormesh(freq[:-1], time, power_rate_change_h, shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], prc_v_abs > thres_power_rate_change_v, shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], prc_v_abs, shading='flat')
-# im = ax.pcolormesh(freq[:-1], time, prc_h_abs > thres_power_rate_change_h, shading='flat')
+# im = ax.pcolormesh(freq[:-1], time, prc_h > thres_power_rate_change_h, shading='flat')
+# im = ax.pcolormesh(freq[:-1], time, prc_h_abs, shading='flat')
 ax.set_title("Spectrogram", size=28)
 ax.set_xlabel("Subcarrier Index", size=24)
 ax.set_ylabel("Symbol Index", size=24)
