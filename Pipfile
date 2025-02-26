@@ -12,6 +12,7 @@ pillow = "*"
 pandas = "*"
 seaborn = "*"
 openpyxl = "*"
+opencv-python = "*"
 
 [dev-packages]
 

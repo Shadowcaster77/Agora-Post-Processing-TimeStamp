@@ -1,0 +1,294 @@
+################################################################################
+# Read FFT-ed I/Q samples from .bin files dumped by the sensing feature of
+# Savannah, and find the bounding box with classic image processing method.
+#
+# This file is transposed version. The original version is in
+# sensing/imag_proc.py. In this version, data_strip is dividing frequency bands.
+#
+# Author: Chung-Hsuan Tung
+################################################################################
+
+import sys
+import time as t
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+from scipy.ndimage import binary_dilation
+from scipy.ndimage import binary_erosion
+
+import helper
+
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_prefix = '../data/sensing/sensed_fft_frame'
+file_midfix = '_sym'
+file_postfix = '_sc0_size1024.bin'
+num_frame = 20
+num_symbol_per_frame = 5
+fig_name = 'imag_proc_2d.png'
+
+'''
+filename format: sensing_fft_
+                 frame<frame_index>_
+                 sym<symbol_id>_
+                 sc<subcarrier_id>_
+                 size<fft_size>.bin
+'''
+
+# figure settings (font size)
+font_title = 20
+font_label = 15
+font_tick = 12
+fig_size = (6.4, 4.8) # default value
+
+time_start = t.perf_counter()
+
+################################################################################
+# Read the IQ samples for Savannah's DumpToFile() in DoSensingFreq
+
+comp_values = []
+abs_values = []
+
+for frame_index in range(0, num_frame):
+    for symbol_index in range(0, num_symbol_per_frame):
+        file_name = file_prefix + str(frame_index) +\
+                    file_midfix + str(symbol_index) + file_postfix
+
+        # Read binary data
+        complex_values = helper.read_complex_samples(file_name)
+
+        # Separate real, imaginary, and absolute parts
+        abs_values.append([abs(c) for c in complex_values])
+        comp_values.append(complex_values)
+
+###
+# Print basic info
+fft_size = len(abs_values[0])
+print(f"{len(abs_values)} symbols ", end='')
+print(f"({num_frame} frames x each {num_symbol_per_frame} symbols), ")
+print(f"each with {fft_size} complex numbers.")
+
+num_symbol = num_frame * num_symbol_per_frame
+time = np.linspace(0, num_symbol, num_symbol + 1)
+freq = np.linspace(0, fft_size, fft_size + 1)
+data_abs = np.array(abs_values)
+
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
+plt.colorbar(label="Power/Frequency (dB/Hz)")
+plt.title("Input Spectrogram", size=font_title)
+plt.xlabel("Subcarrier Index", size=font_label)
+plt.ylabel("Symbol Index", size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('imag_proc_spectrogram.png')
+plt.close()
+
+################################################################################
+# Summation over frequency axis -> project the sum to time axis
+
+proj_freq = np.sum(data_abs, axis=0)
+
+plt.figure(figsize=fig_size)
+plt.plot(freq[:-1], proj_freq)
+plt.title('Projection to Freq Axis', size=font_title)
+plt.xlabel('FFT Index', size=font_label)
+plt.ylabel('Power Sum', size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('imag_proc_proj_freq.png')
+plt.close()
+
+################################################################################
+# Set up a threshold to filter out the noise -> only work on the high power part
+
+thres_time_sum = 1.7 / num_frame # from the figure we pick thres = 1.7/20
+
+print('thres_time_sum:', thres_time_sum)
+
+plt.figure(figsize=fig_size)
+plt.plot(freq[:-1], proj_freq)
+plt.axhline(y=thres_time_sum, color='r',
+            linestyle='--', label='Threshold = {}'.format(thres_time_sum))
+plt.title('Projection to Freq Axis + Threshold', size=font_title)
+plt.xlabel('Symbol Index', size=font_label)
+plt.ylabel('Power Sum', size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.legend()
+plt.tight_layout()
+plt.savefig('imag_proc_proj_freq_thres.png')
+plt.close()
+
+################################################################################
+# Plot the spectrogram with the filtered time axis
+
+proj_freq_bin = proj_freq > thres_time_sum
+
+data_strip = data_abs * proj_freq_bin[np.newaxis, :]
+
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, 10 * np.log10(data_strip), shading='flat')
+plt.colorbar(label="Power/Frequency (dB/Hz)")
+plt.title("Stripped Spectrogram", size=font_title)
+plt.xlabel("Subcarrier Index", size=font_label)
+plt.ylabel("Symbol Index", size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('imag_proc_spectrogram_high_energy.png')
+plt.close()
+
+################################################################################
+# Find the threshold for each of the symbol (dynamic thresholding using Otsu)
+
+# Rescale image to 0-255
+data_strip = (data_strip - np.min(data_strip)) / (np.max(data_strip) - np.min(data_strip)) * 255
+data_strip = data_strip.astype(np.uint8)
+
+def otsu(gray):
+    pixel_number = len(gray)
+    mean_weight = 1.0/pixel_number
+    his, bins = np.histogram(gray, np.arange(0, 257))
+    final_thresh = -1
+    final_value = -1
+    intensity_arr = np.arange(256)
+    for t in bins[1:-1]: # This goes from 1 to 254 uint8 range (Pretty sure wont be those values)
+        pcb = np.sum(his[:t])
+        pcf = np.sum(his[t:])
+        Wb = pcb * mean_weight
+        Wf = pcf * mean_weight
+
+        mub = np.sum(intensity_arr[:t]*his[:t]) / float(pcb)
+        muf = np.sum(intensity_arr[t:]*his[t:]) / float(pcf)
+        #print mub, muf
+        value = Wb * Wf * (mub - muf) ** 2
+
+        if value > final_value:
+            final_thresh = t
+            final_value = value
+    final_img = gray.copy()
+    # print(final_thresh)
+    final_img[gray >= final_thresh] = 1
+    final_img[gray < final_thresh] = 0
+    return final_img
+
+for i in range(len(data_strip[0])):
+    if proj_freq_bin[i]:
+        data_strip[:, i] = otsu(data_strip[:, i])
+
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, data_strip, shading='flat')
+plt.colorbar(label="Power/Frequency (dB/Hz)")
+plt.title("Binarized Spectrogram", size=font_title)
+plt.xlabel("Subcarrier Index", size=font_label)
+plt.ylabel("Symbol Index", size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('imag_proc_spectrogram_otsu.png')
+plt.close()
+
+################################################################################
+# Dilate the binary image to form continuous energy regions
+
+struct_element = np.array([1, 1, 1])
+kernel = np.ones((3, 3), np.uint8)
+
+# Fill the holes in the energy blocks
+data_strip = binary_dilation(data_strip, structure=kernel)
+data_strip = binary_dilation(data_strip, structure=kernel)
+data_strip = binary_erosion(data_strip, structure=kernel, border_value=1)
+data_strip = binary_erosion(data_strip, structure=kernel, border_value=1)
+
+# Eliminate the vertical lines that is our of blocks
+data_strip = binary_erosion(data_strip, structure=kernel, border_value=1)
+data_strip = binary_erosion(data_strip, structure=kernel, border_value=1)
+data_strip = binary_dilation(data_strip, structure=kernel)
+data_strip = binary_dilation(data_strip, structure=kernel)
+
+# Horizontal dilation/erosion
+for i in range(len(data_strip)):
+    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
+    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
+    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
+    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
+    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
+    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
+
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, data_strip, shading='flat')
+plt.colorbar(label="Power/Frequency (dB/Hz)")
+plt.title("Spectrogram after Morphological Operation", size=font_title)
+plt.xlabel("Subcarrier Index", size=font_label)
+plt.ylabel("Symbol Index", size=font_label)
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('imag_proc_spectrogram_dilated.png')
+plt.close()
+
+################################################################################
+# Find and label the connected components
+#
+# Agorithm:
+#   1. Iterate through the matrix
+#   2. If any energy detected, propagate to find the connected components and
+#      identify the edges by finding left-most, right-most, top-most, and bottom
+#      -most pixels.
+#   3. During propagation, mark the pixels as detected (erase).
+
+UNDETECTED_ENERGY = 1
+NO_ENERGY = 0
+boxes = []
+
+sys.setrecursionlimit(10000)
+
+# abbreviation: l (left), r (right), t (top), b (bottom)
+def propagate(mat, x, y) -> list:
+    ll = lr = lt = lb = x
+    rl = rr = rt = rb = x
+    tl = tr = tt = tb = y
+    bl = br = bt = bb = y
+    mat[x, y] = NO_ENERGY
+    x_lim, y_lim = len(mat), len(mat[0])
+    if x-1 >= 0 and mat[x-1, y] == UNDETECTED_ENERGY:
+        [ll, rl, tl, bl] = propagate(mat, x-1, y)
+    if x+1 < x_lim and mat[x+1, y] == UNDETECTED_ENERGY:
+        [lr, rr, tr, br] = propagate(mat, x+1, y)
+    if y-1 >= 0 and mat[x, y-1] == UNDETECTED_ENERGY:
+        [lt, rt, tt, bt] = propagate(mat, x, y-1)
+    if y+1 < y_lim and mat[x, y+1] == UNDETECTED_ENERGY:
+        [lb, rb, tb, bb] = propagate(mat, x, y+1)
+    l = min(x, ll, lr, lt, lb)
+    r = max(x, rl, rr, rt, rb)
+    t = min(y, tl, tr, tt, tb)
+    b = max(y, bl, br, bt, bb)
+
+    return [l, r, t, b]
+
+for i in range(len(data_strip)):
+    for j in range(len(data_strip[0])):
+        if data_strip[i, j] == UNDETECTED_ENERGY:
+            edges = propagate(data_strip, i, j)
+            boxes.append(edges)
+
+print(boxes)
+
+fig, ax = plt.subplots(figsize=fig_size)
+im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
+
+for box in boxes:
+    y1, y2, x1, x2 = box
+    ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
+                                   fill=None, edgecolor='r'))
+    print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
+
+ax.set_title("Boxed Spectrogram", size=font_title)
+ax.set_xlabel("Subcarrier Index", size=font_label)
+ax.set_ylabel("Symbol Index", size=font_label)
+ax.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.colorbar(im, label="Power/Frequency (dB/Hz)")
+plt.tight_layout()
+plt.savefig('imag_proc_spectrogram_box.png')
+plt.close()
+
+################################################################################
+
+time_end = t.perf_counter()
+print(f"Execution time: {time_end - time_start:.2f} seconds")
