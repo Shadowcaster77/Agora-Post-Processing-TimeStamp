@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
+from scipy.ndimage import gaussian_filter1d
 
 import helper
 
@@ -102,6 +103,8 @@ plt.close()
 # Set up a threshold to filter out the noise -> only work on the high power part
 
 thres_time_sum = 1.7 / num_frame # from the figure we pick thres = 1.7/20
+# thres_time_sum = 0.8 # used when the spectrogram has 200 frames (1000 symbols)
+# thres_time_sum = 0 # bypassing the thresholding
 
 print('thres_time_sum:', thres_time_sum)
 
@@ -145,6 +148,7 @@ data_strip = data_strip.astype(np.uint8)
 
 def otsu(gray):
     pixel_number = len(gray)
+    # pixel_number = len(gray) * len(gray[0])
     mean_weight = 1.0/pixel_number
     his, bins = np.histogram(gray, np.arange(0, 257))
     final_thresh = -1
@@ -158,21 +162,31 @@ def otsu(gray):
 
         mub = np.sum(intensity_arr[:t]*his[:t]) / float(pcb)
         muf = np.sum(intensity_arr[t:]*his[t:]) / float(pcf)
-        #print mub, muf
         value = Wb * Wf * (mub - muf) ** 2
 
         if value > final_value:
             final_thresh = t
             final_value = value
     final_img = gray.copy()
-    # print(final_thresh)
     final_img[gray >= final_thresh] = 1
     final_img[gray < final_thresh] = 0
     return final_img
 
+def gaussian_thres(arr, window_size=11, c=3):
+    pad_size = window_size // 2
+    arr_pad = np.pad(arr, pad_size, mode='edge')
+    arr_thres = np.zeros_like(arr)
+
+    local_mean = gaussian_filter1d(arr_pad, sigma=window_size/6)[pad_size:-pad_size]
+
+    arr_thres[arr > local_mean - c] = 1
+    return arr_thres
+
 for i in range(len(data_strip[0])):
     if proj_freq_bin[i]:
         data_strip[:, i] = otsu(data_strip[:, i])
+        # data_strip[:, i] = gaussian_thres(data_strip[:, i])
+# data_strip = otsu(data_strip)
 
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, data_strip, shading='flat')
@@ -268,7 +282,7 @@ for i in range(len(data_strip)):
             edges = propagate(data_strip, i, j)
             boxes.append(edges)
 
-print(boxes)
+print('Number of boxes:', len(boxes))
 
 fig, ax = plt.subplots(figsize=fig_size)
 im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
