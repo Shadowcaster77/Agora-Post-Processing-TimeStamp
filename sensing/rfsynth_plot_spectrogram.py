@@ -1,6 +1,6 @@
 ################################################################################
 # Read raw I/Q samples and metadata from the RFSynth, a framework provided
-# simulated signal genertion for multiple protocols (DSSS, BLE, WLAN) and plot
+# simulated signal generation for multiple protocols (DSSS, BLE, WLAN), and plot
 # the spectrogram.
 # 
 # Reference: https://ieeexplore.ieee.org/abstract/document/10632847
@@ -12,7 +12,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy.signal as signal
-import json
 
 import helper
 
@@ -21,7 +20,6 @@ rfsynth_dir = '../../rfsynth'
 matlab_dir = rfsynth_dir + '/matlab'
 json_path = matlab_dir + '/examples/' + filename + '.json' # metadata
 data_path = matlab_dir + '/examples/' + filename + '.32cf' # raw I/Q samples
-
 
 # Read metadata
 metadata = helper.read_json_file(json_path)
@@ -56,4 +54,4 @@ plt.xlabel("Frequency (MHz)")
 plt.ylabel("Time (ms)")
 plt.title("Spectrogram (RFSynth)", size=28)
 plt.tight_layout()
-plt.savefig('rfsynth_spectrogram_' + filename + '.png')
+plt.savefig('figs/rfsynth_spectrogram_' + filename + '.png')

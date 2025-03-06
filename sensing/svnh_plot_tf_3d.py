@@ -1,5 +1,7 @@
 ################################################################################
-# Read bounding box and spectrogram, and plot into multiple figures.
+# Read FFT-ed I/Q samples, and plot the 3D time-frequency diagram from .bin
+# files dumped by the sensing feature of Savannah.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
 
@@ -16,7 +18,7 @@ file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 20
 num_symbol_per_frame = 5
-fig_name = 'fft_box_3d.png'
+fig_name = 'figs/tf_3d.png'
 
 '''
 filename format: sensing_fft_
@@ -65,7 +67,7 @@ fig, ax = plt.subplots(figsize=(8, 6), subplot_kw={"projection": "3d"})
 plt.rc('legend', fontsize=20)    # fontsize of the legend
 # im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 im = ax.plot_surface(F, T, 10 * np.log10(data_abs), cmap=cm.viridis)
-ax.set_title("Spectrogram", size=28)
+ax.set_title("Time-Freq Plot", size=28)
 ax.set_xlabel("Subcarrier Index", size=20)
 ax.set_ylabel("Symbol Index", size=20)
 ax.tick_params(axis='both', labelsize=16)

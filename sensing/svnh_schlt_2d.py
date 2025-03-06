@@ -1,6 +1,7 @@
 ################################################################################
 # Read FFT-ed I/Q samples from .bin files dumped by the sensing feature of
-# Savannah, and find the bounding box with reduced Searchlight method.
+# Savannah, and find the bounding box with Searchlight method.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
 
@@ -21,7 +22,7 @@ file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 20
 num_symbol_per_frame = 5
-fig_name = 'fft_box_2d.png'
+fig_name = 'figs/searchlight_2d.png'
 
 '''
 filename format: sensing_fft_
@@ -303,7 +304,7 @@ im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], prc_v_abs, shading='flat')
 # im = ax.pcolormesh(freq[:-1], time, prc_h_abs > thres_power_rate_change_h, shading='flat')
 # im = ax.pcolormesh(freq[:-1], time, prc_h_abs, shading='flat')
-ax.set_title("Spectrogram", size=28)
+ax.set_title("Time-Freq Plot", size=28)
 ax.set_xlabel("Subcarrier Index", size=24)
 ax.set_ylabel("Symbol Index", size=24)
 ax.tick_params(axis='both', labelsize=20)

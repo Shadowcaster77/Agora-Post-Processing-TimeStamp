@@ -1,9 +1,15 @@
 ################################################################################
 # Read FFT-ed I/Q samples from .bin files dumped by the sensing feature of
 # Savannah, and find the bounding box with classic image processing method.
+#
+#   1. Adaptive thresholding using Otsu
+#   2. Morphological operations to eliminate noise
+#   3. Connected component labeling to find the bounding boxes
+#
+# In this file, data_strip for adaptive threshold is dividing TIME symbols.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +25,6 @@ file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 20
 num_symbol_per_frame = 5
-fig_name = 'imag_proc_2d.png'
 
 '''
 filename format: sensing_fft_
@@ -68,12 +73,12 @@ data_abs = np.array(abs_values)
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
-plt.title("Input Spectrogram", size=font_title)
+plt.title("Input Time-Freq Plot", size=font_title)
 plt.xlabel("Subcarrier Index", size=font_label)
 plt.ylabel("Symbol Index", size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
-plt.savefig('imag_proc_spectrogram.png')
+plt.savefig('figs/imag_proc_tf.png')
 plt.close()
 
 ################################################################################
@@ -88,7 +93,7 @@ plt.xlabel('Symbol Index', size=font_label)
 plt.ylabel('Power Sum', size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
-plt.savefig('imag_proc_proj_time.png')
+plt.savefig('figs/imag_proc_proj_time.png')
 plt.close()
 
 ################################################################################
@@ -108,7 +113,7 @@ plt.ylabel('Power Sum', size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.legend()
 plt.tight_layout()
-plt.savefig('imag_proc_proj_time_thres.png')
+plt.savefig('figs/imag_proc_proj_time_thres.png')
 plt.close()
 
 ################################################################################
@@ -121,12 +126,12 @@ data_strip = data_abs * proj_time_bin[:, np.newaxis]
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, 10 * np.log10(data_strip), shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
-plt.title("Stripped Spectrogram", size=font_title)
+plt.title("Stripped Time-Freq Plot", size=font_title)
 plt.xlabel("Subcarrier Index", size=font_label)
 plt.ylabel("Symbol Index", size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
-plt.savefig('imag_proc_spectrogram_high_energy.png')
+plt.savefig('figs/imag_proc_tf_high_energy.png')
 plt.close()
 
 ################################################################################
@@ -170,12 +175,12 @@ for i in range(len(data_strip)):
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, data_strip, shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
-plt.title("Binarized Spectrogram", size=font_title)
+plt.title("Binarized Time-Freq Plot", size=font_title)
 plt.xlabel("Subcarrier Index", size=font_label)
 plt.ylabel("Symbol Index", size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
-plt.savefig('imag_proc_spectrogram_otsu.png')
+plt.savefig('figs/imag_proc_tf_otsu.png')
 plt.close()
 
 ################################################################################
@@ -213,10 +218,10 @@ data_strip = binary_erosion(data_strip, structure=kernel, border_value=1)
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, data_strip, shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
-plt.title("Spectrogram after Morphological Operation", size=font_title)
+plt.title("Time-Freq Plot after Morphological Operation", size=font_title)
 plt.xlabel("Subcarrier Index", size=font_label)
 plt.ylabel("Symbol Index", size=font_label)
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
-plt.savefig('imag_proc_spectrogram_dilated.png')
+plt.savefig('figs/imag_proc_tf_dilated.png')
 plt.close()

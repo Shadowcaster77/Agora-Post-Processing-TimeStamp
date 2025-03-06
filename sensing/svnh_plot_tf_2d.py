@@ -1,6 +1,7 @@
 ################################################################################
-# Read FFT-ed I/Q samples, and plot the spectrogram from .bin files dumped by
-# the sensing feature of Savannah.
+# Read FFT-ed I/Q samples, and plot the time-frequency diagram from .bin files
+# dumped by the sensing feature of Savannah.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
 
@@ -19,7 +20,7 @@ num_g = frame_schedule.count('G')
 num_frame = 20
 hide_guard = True
 num_symbol_per_frame = num_u + num_p if hide_guard else num_u + num_p + num_g
-fig_name = 'tf_sym_rfsynth_g.png'
+fig_name = 'figs/tf_2d.png'
 
 '''
 filename format: sensing_fft_
@@ -69,7 +70,7 @@ plt.rc('xtick', labelsize=20)    # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)    # fontsize of the tick labels
 plt.pcolormesh(freq, time, 10 * np.log10(data), shading='flat')
 plt.colorbar(label="Power/Frequency (dB/Hz)")
-plt.title(f"Spectrogram ({num_p}P {num_u}U {num_g}G)", size=28)
+plt.title(f"Time-Freq Plot ({num_p}P {num_u}U {num_g}G)", size=28)
 plt.xlabel("Subcarrier Index", size=24)
 plt.ylabel("Symbol Index", size=24)
 plt.tight_layout()

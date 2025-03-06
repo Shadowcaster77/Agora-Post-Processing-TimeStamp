@@ -1,6 +1,7 @@
 ################################################################################
 # Read FFT-ed I/Q samples from .bin files dumped by the sensing feature of
 # Savannah, and find the bounding box with reduced Searchlight method in 1D.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
 
@@ -15,7 +16,7 @@ file_postfix = '_sc0_size2048.bin'
 num_frame = 200
 num_symbol_per_frame = 5
 idx = 3
-fig_name = 'fft_sym{}_box.png'.format(idx)
+fig_name = 'figs/searclight_1d_sym{}.png'.format(idx)
 
 '''
 filename format: sensing_fft_
@@ -24,6 +25,7 @@ filename format: sensing_fft_
                  sc<subcarrier_id>_
                  size<fft_size>.bin
 '''
+
 
 frame_index = idx // num_symbol_per_frame
 symbol_index = idx % num_symbol_per_frame

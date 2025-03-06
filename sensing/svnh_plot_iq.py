@@ -1,6 +1,7 @@
 ################################################################################
 # Read raw I/Q samples, FFT-ed I/Q samples, and CSI from .bin files dumped by
 # the sensing feature of Savannah.
+#
 # Author: Chung-Hsuan Tung
 ################################################################################
 
@@ -12,13 +13,13 @@ import helper
 input_path = '../../savannah_isac/files/sensing/'
 
 file_name = input_path + 'sensed_raw_frame0_sym0_sc0_size1088.bin'
-fig_name = 'raw_iq.png'
+fig_name = 'figs/raw_iq.png'
 
 # file_name = input_path + 'sensed_fft_frame0_sym0_sc0_size1024.bin'
-# fig_name = 'fft_iq.png'
+# fig_name = 'figs/fft_iq.png'
 
 # file_name = input_path + 'sensed_csi_frame0_sc0_size1024.bin'
-# fig_name = 'csi.png'
+# fig_name = 'figs/csi.png'
 
 ###
 # Read binary data
