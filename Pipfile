@@ -13,6 +13,7 @@ pandas = "*"
 seaborn = "*"
 openpyxl = "*"
 opencv-python = "*"
+pyyaml = "*"
 
 [dev-packages]
 

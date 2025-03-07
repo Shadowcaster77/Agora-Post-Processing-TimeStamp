@@ -6,6 +6,7 @@
 
 import struct
 import json
+import yaml
 
 def read_complex_samples(file_path):
     """
@@ -54,3 +55,21 @@ def read_json_file(file_path):
     except json.JSONDecodeError:
         print(f"Error: Invalid JSON format in {file_path}")
         return None
+
+def read_yaml_file(file_path):
+    """
+    Reads a YAML file and returns the data as a Python dictionary."
+
+    Args:
+        file_path (str): The path to the YAML file.
+
+    Returns:
+        dict: The YAML data as a Python dictionary, or None if an error occurs.
+    """
+    with open(file_path, 'r') as file:
+        try:
+            data = yaml.safe_load(file)
+            return data
+        except yaml.YAMLError as e:
+            print(f"Error reading YAML file: {e}")
+            return None
