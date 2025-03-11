@@ -27,7 +27,7 @@ file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
 # file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
-num_frame = 20
+num_frame = 32
 num_symbol_per_frame = 70
 
 '''
@@ -335,3 +335,11 @@ plt.close()
 
 time_end = t.perf_counter()
 print(f"Execution time: {time_end - time_start:.2f} seconds")
+
+
+################################################################################
+# Save the bounding boxes to a file
+
+boxes_np = np.array(boxes)
+np.save('boxes.npy', boxes_np)
+print('Bounding boxes are saved to boxes.npy')

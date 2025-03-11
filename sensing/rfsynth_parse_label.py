@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import scipy.signal as signal
 import json
+import csv
 
 import helper
 
@@ -115,3 +116,22 @@ for e in energy_list:
 plt.colorbar(im, label="Power Spectral Density (dB)")
 plt.tight_layout()
 plt.savefig('figs/rfsynth_spectrogram_' + filename + '_labeled.png')
+print(f'Spectrogram is saved to figs/rfsynth_spectrogram_{filename}_labeled.png')
+
+################################################################################
+# Dump the label to a cvs file
+
+dict_transmission_list = []
+for e in energy_list:
+    # convert the object's attributes to dictionary
+    dict_transmission_list.append(vars(e))
+
+csv_file = 'rfsynth_label_' + filename + '.csv'
+csv_columns = ['time_start', 'time_stop', 'freq_lo', 'freq_hi', 'time_length_s', 'bandwidth_hz']
+
+with open(csv_file, 'w') as csvfile:
+    writer = csv.DictWriter(csvfile, fieldnames=csv_columns)
+    writer.writeheader()
+    writer.writerows(dict_transmission_list)
+
+print(f'Label is saved to {csv_file}')
