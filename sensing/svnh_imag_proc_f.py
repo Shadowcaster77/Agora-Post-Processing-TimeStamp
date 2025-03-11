@@ -19,15 +19,16 @@ import matplotlib.patches as patches
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
 from scipy.ndimage import gaussian_filter1d
+from collections import deque
 
 import helper
 
-# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-file_prefix = '../data/sensing/sensed_fft_frame'
+file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+# file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 20
-num_symbol_per_frame = 5
+num_symbol_per_frame = 70
 
 '''
 filename format: sensing_fft_
@@ -104,7 +105,8 @@ plt.close()
 ################################################################################
 # Set up a threshold to filter out the noise -> only work on the high power part
 
-thres_time_sum = 1.7 / num_frame # from the figure we pick thres = 1.7/20
+thres_time_sum = 8.5e-4 * num_symbol
+# from the figure we pick thres = 1.7/20 for a 20-frame, each with 70 symbols
 # thres_time_sum = 0.8 # used when the spectrogram has 200 frames (1000 symbols)
 # thres_time_sum = 0 # bypassing the thresholding
 
@@ -253,29 +255,54 @@ UNDETECTED_ENERGY = 1
 NO_ENERGY = 0
 boxes = []
 
-sys.setrecursionlimit(10000)
+# sys.setrecursionlimit(10000)
+# # abbreviation: l (left), r (right), t (top), b (bottom)
+# def propagate(mat, x, y) -> list:
+#     ll = lr = lt = lb = x
+#     rl = rr = rt = rb = x
+#     tl = tr = tt = tb = y
+#     bl = br = bt = bb = y
+#     mat[x, y] = NO_ENERGY
+#     x_lim, y_lim = len(mat), len(mat[0])
+#     if x-1 >= 0 and mat[x-1, y] == UNDETECTED_ENERGY:
+#         [ll, rl, tl, bl] = propagate(mat, x-1, y)
+#     if x+1 < x_lim and mat[x+1, y] == UNDETECTED_ENERGY:
+#         [lr, rr, tr, br] = propagate(mat, x+1, y)
+#     if y-1 >= 0 and mat[x, y-1] == UNDETECTED_ENERGY:
+#         [lt, rt, tt, bt] = propagate(mat, x, y-1)
+#     if y+1 < y_lim and mat[x, y+1] == UNDETECTED_ENERGY:
+#         [lb, rb, tb, bb] = propagate(mat, x, y+1)
+#     l = min(x, ll, lr, lt, lb)
+#     r = max(x, rl, rr, rt, rb)
+#     t = min(y, tl, tr, tt, tb)
+#     b = max(y, bl, br, bt, bb)
 
-# abbreviation: l (left), r (right), t (top), b (bottom)
+#     return [l, r, t, b]
+
+# non-recursive version, similar processing time but less memory (no stack)
 def propagate(mat, x, y) -> list:
-    ll = lr = lt = lb = x
-    rl = rr = rt = rb = x
-    tl = tr = tt = tb = y
-    bl = br = bt = bb = y
-    mat[x, y] = NO_ENERGY
     x_lim, y_lim = len(mat), len(mat[0])
-    if x-1 >= 0 and mat[x-1, y] == UNDETECTED_ENERGY:
-        [ll, rl, tl, bl] = propagate(mat, x-1, y)
-    if x+1 < x_lim and mat[x+1, y] == UNDETECTED_ENERGY:
-        [lr, rr, tr, br] = propagate(mat, x+1, y)
-    if y-1 >= 0 and mat[x, y-1] == UNDETECTED_ENERGY:
-        [lt, rt, tt, bt] = propagate(mat, x, y-1)
-    if y+1 < y_lim and mat[x, y+1] == UNDETECTED_ENERGY:
-        [lb, rb, tb, bb] = propagate(mat, x, y+1)
-    l = min(x, ll, lr, lt, lb)
-    r = max(x, rl, rr, rt, rb)
-    t = min(y, tl, tr, tt, tb)
-    b = max(y, bl, br, bt, bb)
-
+    queue = deque([(x, y)])
+    mat[x, y] = NO_ENERGY
+    
+    l = r = x
+    t = b = y
+    
+    while queue:
+        cx, cy = queue.popleft()
+        
+        l = min(l, cx)
+        r = max(r, cx)
+        t = min(t, cy)
+        b = max(b, cy)
+        
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = cx + dx, cy + dy
+            if 0 <= nx < x_lim and 0 <= ny < y_lim:
+                if mat[nx, ny] == UNDETECTED_ENERGY:
+                    mat[nx, ny] = NO_ENERGY # Mark as visited
+                    queue.append((nx, ny))
+    
     return [l, r, t, b]
 
 for i in range(len(data_strip)):
