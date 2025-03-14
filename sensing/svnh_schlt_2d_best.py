@@ -21,7 +21,7 @@ import helper
 file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
-num_frame = 20
+num_frame = 32
 num_symbol_per_frame = 70
 fig_name = 'figs/searchlight_2d_best.png'
 
