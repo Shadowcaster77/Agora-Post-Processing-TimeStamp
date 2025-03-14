@@ -7,6 +7,7 @@
 import struct
 import json
 import yaml
+import re
 
 def read_complex_samples(file_path):
     """
@@ -73,3 +74,31 @@ def read_yaml_file(file_path):
         except yaml.YAMLError as e:
             print(f"Error reading YAML file: {e}")
             return None
+
+# The following two function are used to tackle the file with comments
+# The comments are removed before parsing the JSON file
+def read_json_file_as_str(file_path):
+    with open(file_path, 'r') as json_file:
+        data = json_file.read()
+    return data
+
+def remove_json_comments(json_str):
+    # Use a regular expression to remove single-line comments
+    json_str = re.sub(r"(?m)^\s*//.*$", "", json_str)
+    
+    # Use a regular expression to remove multi-line comments
+    json_str = re.sub(r"/\*.*?\*/", "", json_str, flags=re.DOTALL)
+
+    return json_str
+
+def read_json_file_no_comments(json_file_path):
+    # Read the JSON data from the file
+    json_str = read_json_file_as_str(json_file_path)
+
+    # Remove comments from the JSON data
+    json_str = remove_json_comments(json_str)
+
+    # Load the JSON data without comments into a dictionary
+    json_data = json.loads(json_str)
+
+    return json_data

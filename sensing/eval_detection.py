@@ -14,6 +14,9 @@ import csv
 
 import helper
 
+################################################################################
+# Read detected bounding boxes
+################################################################################
 
 # read the bounding box from classic image processing
 boxes_detected = np.load('boxes.npy')
@@ -21,18 +24,9 @@ boxes_detected = np.load('boxes.npy')
 # read the bounding box from searchlight
 boxes_searchlight = np.load('stored_boxes.npy')
 
-# read the bounding box from rfsynth
-cvs_read = []
-with open('rfsynth_label_test.csv', 'r') as file:
-    csv_reader = csv.reader(file)
-    for row in csv_reader:
-        cvs_read.append(row)
-header = cvs_read[0]
-boxes_truth = cvs_read[1:]
-
-# convert rfsynth bounding box to the same format as classic image processing
-# rfsynth: directly from antenna rx (time, freq)
-# classic image processing: from the savannah output (symbol, subcarrier)
+################################################################################
+# Read parameters from metadata/config of rsynth and savannah
+################################################################################
 
 # number should later be read from the metadata
 bandwidth = 122.88e6
@@ -43,12 +37,71 @@ num_frame = 32
 num_symbol = num_frame * num_symbol_per_frame
 total_time = 0.02
 
-def time_to_symbol(time, total_time, num_symbol):
-    return int(time / total_time * num_symbol)
+# read config from savannah (rx)
+PATH_SVNH = '../../savannah_isac/files/config/ci/tddconfig-sim-ul-fr2.json'
+config_svnh = helper.read_json_file_no_comments(PATH_SVNH)
+bandwidth = config_svnh['sample_rate']
+fft_size = config_svnh['fft_size']
+cp_size = config_svnh['cp_size']
+frame_schedule = config_svnh['frame_schedule'][0]
+num_symbol_per_frame = frame_schedule.count('U') + frame_schedule.count('P')
+max_frame = config_svnh['max_frame']
+time_per_frame = (fft_size + cp_size) * num_symbol_per_frame / bandwidth
+print("Time per frame: {:.10f}".format(time_per_frame))
+
+# read metadata/config from rfsynth (signal generation)
+RFSYNTH_DATA_ID = 'test'
+# assert RFSYNTH_DATA_ID == config_svnh['sensing_file_id'], "rfsynth ID does not match savannah ID"
+RFSYNTH_PATH = '../../rfsynth/matlab/examples/'
+metadata_rfsynth = helper.read_json_file(RFSYNTH_PATH + RFSYNTH_DATA_ID + '.json')
+config_rfsynth = helper.read_yaml_file(RFSYNTH_PATH + 'config_' + RFSYNTH_DATA_ID + '.yml')
+assert config_rfsynth['generationParameters']['outputFile'] == RFSYNTH_DATA_ID, (
+    "rfsynth ID does not match config ID")
+center_freq = metadata_rfsynth['rxObj']['freqCenter_Hz']
+samp_rate = metadata_rfsynth['rxObj']['sampleRate_Hz']
+assert samp_rate == bandwidth, ("sampling rate does not match between rfsynth "
+                                "and savannah")
+total_time = config_rfsynth['generationParameters']['tot_time']
+
+# check metadata name & sampling rate
+num_frame = int(total_time / time_per_frame)
+num_symbol = num_frame * num_symbol_per_frame
+assert num_frame <= max_frame, ("num_frame generated from rfsynth exceeds " 
+                                "max_frame received by savannah")
+
+print('bandwidth:', bandwidth)
+print('center_freq:', center_freq)
+print('fft_size:', fft_size)
+print('num_symbol_per_frame:', num_symbol_per_frame)
+print('num_frame:', num_frame)
+print('num_symbol:', num_symbol)
+print('total_time:', total_time)
+
+################################################################################
+# Read ground truth bounding boxes
+################################################################################
+
+# read the bounding box from rfsynth
+cvs_read = []
+with open('rfsynth_label_{}.csv'.format(RFSYNTH_DATA_ID), 'r') as file:
+    csv_reader = csv.reader(file)
+    for row in csv_reader:
+        cvs_read.append(row)
+header = cvs_read[0]
+boxes_truth = cvs_read[1:]
+
+# convert rfsynth bounding box to the same format as classic image processing
+# rfsynth: directly from antenna rx (time, freq)
+# classic image processing: from the savannah output (symbol, subcarrier)
+
+def time_to_symbol(time, time_per_frame, num_frame ,num_symbol):
+    # only consider the total time received by savannah to avoid shift
+    new_total_time = time_per_frame * num_frame
+    return int(time / new_total_time * num_symbol)
 
 def freq_to_subcarrier(freq, center_freq, bandwidth, fft_size):
     # subcarrier starts from 0 while freq starts from center_freq
-    return int((freq-center_freq) / bandwidth * fft_size + 0.5*fft_size)
+    return int((freq-center_freq) / bandwidth * fft_size + 0.5*(fft_size))
 
 for box in boxes_truth:
     time_start = float(box[0])
@@ -56,8 +109,8 @@ for box in boxes_truth:
     freq_lo = float(box[2])
     freq_hi = float(box[3])
 
-    symbol_start = time_to_symbol(time_start, total_time, num_symbol)
-    symbol_stop = time_to_symbol(time_stop, total_time, num_symbol)
+    symbol_start = time_to_symbol(time_start, time_per_frame, num_frame, num_symbol)
+    symbol_stop = time_to_symbol(time_stop, time_per_frame, num_frame, num_symbol)
     subcarrier_start = freq_to_subcarrier(freq_lo, center_freq, bandwidth, fft_size)
     subcarrier_stop = freq_to_subcarrier(freq_hi, center_freq, bandwidth, fft_size)
 
@@ -70,8 +123,8 @@ for box in boxes_truth:
 # Plot the time-frequency figure with the detected/ground truth bounding boxes
 ################################################################################
 
-file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-# file_prefix = '../data/sensing/sensed_fft_frame'
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 32
@@ -130,7 +183,7 @@ for box in boxes_detected:
 
 print("Searchlight Boxes:")
 for box in boxes_searchlight:
-    y1, y2, x1, x2 = box
+    y1, x1, y2, x2 = box
     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
                                    fill=None, edgecolor='black'))
     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
@@ -159,5 +212,3 @@ plt.close()
 ################################################################################
 # Calculate IoU
 ################################################################################
-
-

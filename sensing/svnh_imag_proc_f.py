@@ -23,8 +23,8 @@ from collections import deque
 
 import helper
 
-file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-# file_prefix = '../data/sensing/sensed_fft_frame'
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 32
@@ -342,4 +342,4 @@ print(f"Execution time: {time_end - time_start:.2f} seconds")
 
 boxes_np = np.array(boxes)
 np.save('boxes.npy', boxes_np)
-print('Bounding boxes are saved to boxes.npy')
+print('Bounding boxes ({}) are saved to boxes.npy'.format(len(boxes_np)))
