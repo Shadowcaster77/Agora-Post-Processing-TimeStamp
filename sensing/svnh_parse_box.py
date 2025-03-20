@@ -64,7 +64,7 @@ print(f"each with {size} complex numbers.")
 ################################################################################
 # Read boxes
 
-box_path = file_folder + 'test/box_frame0-19_sym0-70_sc0-1023.csv'
+box_path = file_folder + 'test/box_frame0-19_sym0-70_sc0-511.csv'
 boxes = []
 
 with open(box_path, 'r') as csvfile:
@@ -75,6 +75,22 @@ with open(box_path, 'r') as csvfile:
     for row in csvreader:
         box = [int(i) for i in row]
         boxes.append(box)
+
+
+box_path = file_folder + 'test/box_frame0-19_sym0-70_sc512-1023.csv'
+with open(box_path, 'r') as csvfile:
+    csvreader = csv.reader(csvfile)
+    abs_loc_header = next(csvreader)
+    abs_loc = next(csvreader)
+    rel_loc_header = next(csvreader)
+    sc_start_idx = abs_loc_header.index('subcarrier_start')
+    sc_start = int(abs_loc[sc_start_idx])
+    for row in csvreader:
+        box = [int(i) for i in row]
+        box[0] += sc_start
+        box[2] += sc_start
+        boxes.append(box)
+
 
 ################################################################################
 num_symbol = num_frame * num_symbol_per_frame
