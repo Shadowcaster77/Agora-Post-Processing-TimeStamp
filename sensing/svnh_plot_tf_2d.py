@@ -10,10 +10,12 @@ import matplotlib.pyplot as plt
 
 import helper
 
-file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_prefix = '../../savannah_isac/files/sensing/test/sensed_fft_frame'
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
 file_midfix = '_sym'
-file_postfix = '_sc0_size2048.bin'
-frame_schedule = "PUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+file_postfix = '_sc0_size1024.bin'
+# frame_schedule = "PUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
+frame_schedule = "PUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
 num_u = frame_schedule.count('U')
 num_p = frame_schedule.count('P')
 num_g = frame_schedule.count('G')
