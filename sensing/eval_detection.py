@@ -14,15 +14,17 @@ import csv
 
 import helper
 
+RFSYNTH_DATA_ID = input("Enter the rfsynth id (e.g., test): ") or 'test'
+
 ################################################################################
 # Read detected bounding boxes
 ################################################################################
 
 # read the bounding box from classic image processing
-boxes_detected = np.load('boxes.npy')
+boxes_detected = np.load('boxes_' + RFSYNTH_DATA_ID + '.npy')
 
-# read the bounding box from searchlight
-boxes_searchlight = np.load('stored_boxes.npy')
+# # read the bounding box from searchlight
+# boxes_searchlight = np.load('stored_boxes.npy')
 
 ################################################################################
 # Read parameters from metadata/config of rsynth and savannah
@@ -38,7 +40,7 @@ num_symbol = num_frame * num_symbol_per_frame
 total_time = 0.02
 
 # read config from savannah (rx)
-PATH_SVNH = '../../savannah_isac/files/config/ci/tddconfig-sim-ul-fr2.json'
+PATH_SVNH = '../../savannah_isac/files/config/ci/tddconfig-sim-sensing.json'
 config_svnh = helper.read_json_file_no_comments(PATH_SVNH)
 bandwidth = config_svnh['sample_rate']
 fft_size = config_svnh['fft_size']
@@ -50,7 +52,7 @@ time_per_frame = (fft_size + cp_size) * num_symbol_per_frame / bandwidth
 print("Time per frame: {:.10f}".format(time_per_frame))
 
 # read metadata/config from rfsynth (signal generation)
-RFSYNTH_DATA_ID = 'test'
+# RFSYNTH_DATA_ID = 'sparse'
 # assert RFSYNTH_DATA_ID == config_svnh['sensing_file_id'], "rfsynth ID does not match savannah ID"
 RFSYNTH_PATH = '../../rfsynth/matlab/examples/'
 metadata_rfsynth = helper.read_json_file(RFSYNTH_PATH + RFSYNTH_DATA_ID + '.json')
@@ -123,12 +125,12 @@ for box in boxes_truth:
 # Plot the time-frequency figure with the detected/ground truth bounding boxes
 ################################################################################
 
-# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-file_prefix = '../data/sensing/sensed_fft_frame'
+file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+# file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
-num_frame = 32
-num_symbol_per_frame = 70
+num_frame = 40
+num_symbol_per_frame = 50
 
 '''
 filename format: sensing_fft_
@@ -140,8 +142,8 @@ filename format: sensing_fft_
 
 # figure settings (font size)
 font_title = 20
-font_label = 15
-font_tick = 12
+font_label = 20
+font_tick = 20
 fig_size = (6.4, 4.8) # default value
 
 comp_values = []
@@ -181,12 +183,12 @@ for box in boxes_detected:
                                    fill=None, edgecolor='r'))
     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
 
-print("Searchlight Boxes:")
-for box in boxes_searchlight:
-    y1, x1, y2, x2 = box
-    ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='black'))
-    print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
+# print("Searchlight Boxes:")
+# for box in boxes_searchlight:
+#     y1, x1, y2, x2 = box
+#     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
+#                                    fill=None, edgecolor='black'))
+#     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
 
 print("Ground Truth Boxes:")
 for box in boxes_truth:
@@ -196,17 +198,21 @@ for box in boxes_truth:
     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
 
 patch_r = patches.Patch(color='red', label='Detected Box')
-patch_b = patches.Patch(color='black', label='Searchlight Box')
+# patch_b = patches.Patch(color='black', label='Searchlight Box')
 patch_w = patches.Patch(color='white', label='Ground Truth Box')
 
-ax.set_title("Boxed Time-Freq Plot", size=font_title)
-ax.set_xlabel("Subcarrier Index", size=font_label)
-ax.set_ylabel("Symbol Index", size=font_label)
+# ax.set_title("Boxed Time-Freq Plot", size=font_title)
+ax.set_xlabel("Frequency Index", size=font_label)
+ax.set_ylabel("Time Index", size=font_label)
 ax.tick_params(axis='both', which='major', labelsize=font_tick)
-plt.colorbar(im, label="Power/Frequency (dB/Hz)")
-plt.legend(handles=[patch_r, patch_b, patch_w])
+ax.set_ylim([0, num_symbol])
+cbar = plt.colorbar(im)
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
+# plt.legend(handles=[patch_r, patch_b, patch_w])
+plt.legend(handles=[patch_r, patch_w])
 plt.tight_layout()
-plt.savefig('figs/compare.png')
+plt.savefig('figs/compare_' + RFSYNTH_DATA_ID + '.png')
 plt.close()
 
 ################################################################################
@@ -254,20 +260,20 @@ boxes_detected = [Box(y_l=int(box[0]),
                       x_l=int(box[2]),
                       x_h=int(box[3])) for box in boxes_detected]
 
-boxes_searchlight = [Box(y_l=int(box[0]),
-                         y_h=int(box[2]),
-                         x_l=int(box[1]),
-                         x_h=int(box[3])) for box in boxes_searchlight]
+# boxes_searchlight = [Box(y_l=int(box[0]),
+#                          y_h=int(box[2]),
+#                          x_l=int(box[1]),
+#                          x_h=int(box[3])) for box in boxes_searchlight]
 
 print('number of ground truth boxes:', len(boxes_truth))
 print('number of detected boxes:', len(boxes_detected))
-print('number of searchlight boxes:', len(boxes_searchlight))
+# print('number of searchlight boxes:', len(boxes_searchlight))
 
 # Probability of detection
 # Definition: for each ground truth box, if it falls 80% within a detected box,
 # it is considered as detected
 
-overlap_ration_threshold = 0.5
+t_iou = 0.5 # threshold of IoU
 
 def calculate_prob_detection(boxes_truth, boxes_detected):
     num_detected = 0
@@ -275,14 +281,13 @@ def calculate_prob_detection(boxes_truth, boxes_detected):
         for box_d in boxes_detected:
             area_overlap = box_t.find_overlap_area(box_d)
             area_truth = (box_t.x_h - box_t.x_l) * (box_t.y_h - box_t.y_l)
-            if area_overlap >= overlap_ration_threshold * area_truth:
+            if area_overlap >= t_iou * area_truth:
                 num_detected += 1
-                box_t.set_detected(True)
                 break
     return num_detected / len(boxes_truth)
 
-print('Probability of detection:',
-      calculate_prob_detection(boxes_truth, boxes_detected))
+p_d = calculate_prob_detection(boxes_truth, boxes_detected)
+print('Probability of detection:', p_d)
 
 ################################################################################
 # Calculate false alarm rate
@@ -298,15 +303,15 @@ def calculate_false_alarm(boxes_truth, boxes_detected):
         for box_t in boxes_truth:
             area_overlap = box_t.find_overlap_area(box_d)
             area_truth = (box_t.x_h - box_t.x_l) * (box_t.y_h - box_t.y_l)
-            if area_overlap >= overlap_ration_threshold * area_truth:
+            if area_overlap >= t_iou * area_truth:
                 detected = True
                 break
         if not detected:
             num_false_alarm += 1
     return num_false_alarm / len(boxes_detected)
 
-print('False alarm rate:',
-      calculate_false_alarm(boxes_truth, boxes_detected))
+p_fa = calculate_false_alarm(boxes_truth, boxes_detected)
+print('False alarm rate:', p_fa)
 
 ################################################################################
 # Calculate IoU
@@ -363,90 +368,203 @@ print(f"Average IoU (Ground Truth focused): {avg_iou_gt:.3f}")
 print(f"Average IoU (Prediction focused): {avg_iou_pred:.3f}")
 print(f"Global Average IoU: {avg_iou_global:.3f}")
 
-print("IoU Matrix:")
-print(iou_matrix)
+# print("IoU Matrix:")
+# print(iou_matrix)
 
 ################################################################################
 
-file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-# file_prefix = '../data/sensing/sensed_fft_frame'
-file_midfix = '_sym'
-file_postfix = '_sc0_size1024.bin'
-num_frame = 32
-num_symbol_per_frame = 70
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+# # file_prefix = '../data/sensing/sensed_fft_frame'
+# file_midfix = '_sym'
+# file_postfix = '_sc0_size1024.bin'
+# num_frame = 40
+# num_symbol_per_frame = 50
 
-'''
-filename format: sensing_fft_
-                 frame<frame_index>_
-                 sym<symbol_id>_
-                 sc<subcarrier_id>_
-                 size<fft_size>.bin
-'''
+# '''
+# filename format: sensing_fft_
+#                  frame<frame_index>_
+#                  sym<symbol_id>_
+#                  sc<subcarrier_id>_
+#                  size<fft_size>.bin
+# '''
 
-# figure settings (font size)
-font_title = 20
-font_label = 15
-font_tick = 12
-fig_size = (6.4, 4.8) # default value
+# # figure settings (font size)
+# font_title = 20
+# font_label = 20
+# font_tick = 20
+# fig_size = (6.4, 4.8) # default value
 
-comp_values = []
-abs_values = []
+# comp_values = []
+# abs_values = []
 
-for frame_index in range(0, num_frame):
-    for symbol_index in range(0, num_symbol_per_frame):
-        file_name = file_prefix + str(frame_index) +\
-                    file_midfix + str(symbol_index) + file_postfix
+# for frame_index in range(0, num_frame):
+#     for symbol_index in range(0, num_symbol_per_frame):
+#         file_name = file_prefix + str(frame_index) +\
+#                     file_midfix + str(symbol_index) + file_postfix
 
-        # Read binary data
-        complex_values = helper.read_complex_samples(file_name)
+#         # Read binary data
+#         complex_values = helper.read_complex_samples(file_name)
 
-        # Separate real, imaginary, and absolute parts
-        abs_values.append([abs(c) for c in complex_values])
-        comp_values.append(complex_values)
+#         # Separate real, imaginary, and absolute parts
+#         abs_values.append([abs(c) for c in complex_values])
+#         comp_values.append(complex_values)
 
-###
-# Print basic info
-fft_size = len(abs_values[0])
-print(f"{len(abs_values)} symbols ", end='')
-print(f"({num_frame} frames x each {num_symbol_per_frame} symbols), ")
-print(f"each with {fft_size} complex numbers.")
+# ###
+# # Print basic info
+# fft_size = len(abs_values[0])
+# print(f"{len(abs_values)} symbols ", end='')
+# print(f"({num_frame} frames x each {num_symbol_per_frame} symbols), ")
+# print(f"each with {fft_size} complex numbers.")
 
-num_symbol = num_frame * num_symbol_per_frame
-time = np.linspace(0, num_symbol, num_symbol + 1)
-freq = np.linspace(0, fft_size, fft_size + 1)
-data_abs = np.array(abs_values)
+# num_symbol = num_frame * num_symbol_per_frame
+# time = np.linspace(0, num_symbol, num_symbol + 1)
+# freq = np.linspace(0, fft_size, fft_size + 1)
+# data_abs = np.array(abs_values)
 
-fig, ax = plt.subplots(figsize=fig_size)
-im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
+# fig, ax = plt.subplots(figsize=fig_size)
+# im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 
-for box in boxes_detected:
-    y1, y2, x1, x2 = box.y_l, box.y_h, box.x_l, box.x_h
-    ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='r'))
+# for box in boxes_detected:
+#     y1, y2, x1, x2 = box.y_l, box.y_h, box.x_l, box.x_h
+#     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
+#                                    fill=None, edgecolor='r'))
 
-for box in boxes_searchlight:
-    y1, x1, y2, x2 = box.y_l, box.x_l, box.y_h, box.x_h
-    ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='black'))
+# # for box in boxes_searchlight:
+# #     y1, x1, y2, x2 = box.y_l, box.x_l, box.y_h, box.x_h
+# #     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
+# #                                    fill=None, edgecolor='black'))
 
-for box in boxes_truth:
-    y1, y2, x1, x2 = box.y_l, box.y_h, box.x_l, box.x_h
-    ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='w'))
-    if box.detected:
-        y, x = (y1+y2)/2, (x1+x2)/2
-        ax.plot(x, y, 'wD', markersize=4)
+# for box in boxes_truth:
+#     y1, y2, x1, x2 = box.y_l, box.y_h, box.x_l, box.x_h
+#     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
+#                                    fill=None, edgecolor='w'))
+#     if box.detected:
+#         y, x = (y1+y2)/2, (x1+x2)/2
+#         ax.plot(x, y, 'wD', markersize=4)
 
-patch_r = patches.Patch(color='red', label='Detected Box')
-patch_b = patches.Patch(color='black', label='Searchlight Box')
-patch_w = patches.Patch(color='white', label='Ground Truth Box')
+# patch_r = patches.Patch(color='red', label='Detected Box')
+# # patch_b = patches.Patch(color='black', label='Searchlight Box')
+# patch_w = patches.Patch(color='white', label='Ground Truth Box')
 
-ax.set_title("Boxed Time-Freq Plot", size=font_title)
-ax.set_xlabel("Subcarrier Index", size=font_label)
-ax.set_ylabel("Symbol Index", size=font_label)
-ax.tick_params(axis='both', which='major', labelsize=font_tick)
-plt.colorbar(im, label="Power/Frequency (dB/Hz)")
-plt.legend(handles=[patch_r, patch_b, patch_w])
-plt.tight_layout()
-plt.savefig('figs/eval_detection.png')
-plt.close()
+# # ax.set_title("Boxed Time-Freq Plot", size=font_title)
+# ax.set_xlabel("Subcarrier Index", size=font_label)
+# ax.set_ylabel("Symbol Index", size=font_label)
+# ax.tick_params(axis='both', which='major', labelsize=font_tick)
+# ax.set_ylim([0, num_symbol])
+# cbar = plt.colorbar(im)
+# cbar.ax.tick_params(labelsize=font_tick)
+# cbar.ax.set_ylabel("Power (dB)", size=font_label)
+# # plt.legend(handles=[patch_r, patch_b, patch_w])
+# plt.legend(handles=[patch_r, patch_w])
+# plt.tight_layout()
+# plt.savefig('figs/eval_detection_' + RFSYNTH_DATA_ID + '.png', dpi=1000)
+# plt.close()
+
+################################################################################
+# Find the 1-1 bounding given the IoU matrix
+# 1. For each ground truth box, find the best match in the detected boxes
+# 2. Re-calculate the probability of detection and false alarm rate
+
+def find_1_1_match(iou_matrix):
+    """
+    Find the 1-1 matches between ground truth and predicted boxes.
+    Args:
+        iou_matrix: 2D numpy array (GT_boxes x Pred_boxes)
+    Returns:
+        match_gt: List of indices (length GT_boxes) of matched Pred_boxes
+        match_pred: List of indices (length Pred_boxes) of matched GT_boxes
+    """
+    match_gt = np.argmax(iou_matrix, axis=1)
+    match_pred = np.argmax(iou_matrix, axis=0)
+    return match_gt, match_pred
+
+def calculate_prob_detection_1_1(boxes_truth, boxes_detected, iou_matrix):
+    """
+    Calculate probability of detection for 1-1 matches.
+    Args:
+        boxes_truth: List of Box objects (ground truth)
+        boxes_detected: List of Box objects (predicted)
+        iou_matrix: 2D numpy array (GT_boxes x Pred_boxes)
+    Returns:
+        p_d: Probability of detection
+    """
+    match_gt, _ = find_1_1_match(iou_matrix)
+    num_detected = 0
+    for i, j in enumerate(match_gt):
+        # j is the index of largest IoU in row i
+        # this inequality means at least a detection box is true
+        if iou_matrix[i, j] > t_iou:
+            num_detected += 1
+    return num_detected / len(boxes_truth)
+
+def calculate_false_alarm_1_1(boxes_truth, boxes_detected, iou_matrix):
+    """
+    Calculate false alarm rate for 1-1
+    Args:
+        boxes_truth: List of Box objects (ground truth)
+        boxes_detected: List of Box objects (predicted)
+        iou_matrix: 2D numpy array (GT_boxes x Pred_boxes)
+    Returns:
+        p_fa: False alarm rate
+    """
+    _, match_pred = find_1_1_match(iou_matrix)
+    num_false_alarm = 0
+    for j, i in enumerate(match_pred):
+        # i is the index of largest IoU in column j
+        # this inequality means no ground truth box is associated to a detection
+        if iou_matrix[i, j] < t_iou:
+            num_false_alarm += 1
+    return num_false_alarm / len(boxes_detected)
+
+def calculate_prob_detection_exist(boxes_truth, boxes_detected, iou_matrix):
+    """
+    Calculate probability of detection for 1-1 matches.
+    Args:
+        boxes_truth: List of Box objects (ground truth)
+        boxes_detected: List of Box objects (predicted)
+        iou_matrix: 2D numpy array (GT_boxes x Pred_boxes)
+    Returns:
+        p_d: Probability of detection
+    """
+    match_gt, _ = find_1_1_match(iou_matrix)
+    num_detected = 0
+    for i, j in enumerate(match_gt):
+        # check if this iou is the largest in the row
+        if iou_matrix[i, j] > 0:
+            num_detected += 1
+    return num_detected / len(boxes_truth)
+
+def calculate_false_alarm_exist(boxes_truth, boxes_detected, iou_matrix):
+    """
+    Calculate false alarm rate for 1-1
+    Args:
+        boxes_truth: List of Box objects (ground truth)
+        boxes_detected: List of Box objects (predicted)
+        iou_matrix: 2D numpy array (GT_boxes x Pred_boxes)
+    Returns:
+        p_fa: False alarm rate
+    """
+    _, match_pred = find_1_1_match(iou_matrix)
+    num_false_alarm = 0
+    for j, i in enumerate(match_pred):
+        if iou_matrix[i, j] > 0:
+            continue
+        num_false_alarm += 1
+    return num_false_alarm / len(boxes_detected)
+
+p_d_1_1 = calculate_prob_detection_1_1(boxes_truth, boxes_detected, iou_matrix)
+p_fa_1_1 = calculate_false_alarm_1_1(boxes_truth, boxes_detected, iou_matrix)
+p_d_exist = calculate_prob_detection_exist(boxes_truth, boxes_detected, iou_matrix)
+p_fa_exist = calculate_false_alarm_exist(boxes_truth, boxes_detected, iou_matrix)
+
+################################################################################
+
+print('p_d (1-1):', p_d_1_1)
+# print('p_d (area):', p_d)
+# print('p_d (exist):', p_d_exist)
+print('p_fa (1-1):', p_fa_1_1)
+# print('p_fa (area):', p_fa)
+# print('p_fa (exist):', p_fa_exist)
+print('avg_iou_gt:', avg_iou_gt)
+print('avg_iou_pred:', avg_iou_pred)
+print('avg_iou_global:', avg_iou_global)
