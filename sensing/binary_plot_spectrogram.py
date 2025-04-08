@@ -17,22 +17,19 @@ import helper
 
 filename = input("Enter the rfsynth id (e.g., test): ") or 'test'
 # filename = 'sparse'
-rfsynth_dir = '../../rfsynth'
-matlab_dir = rfsynth_dir + '/matlab'
-json_path = matlab_dir + '/examples/' + filename + '.json' # metadata
-data_path = matlab_dir + '/examples/' + filename + '.32cf' # raw I/Q samples
+dir = '../../savannah_isac/files/experiment/'
+data_path = dir + filename + '.32cf' # raw I/Q samples
 
-# Read metadata
-metadata = helper.read_json_file(json_path)
-# print(json.dumps(metadata, indent=2))
-# print(metadata)
 
 # Read raw I/Q samples
 complex_values = helper.read_complex_samples(data_path)
 complex_values = np.array(complex_values, dtype=np.complex64)
 
-samp_rate = metadata['rxObj']['sampleRate_Hz']
-freq_center = metadata['rxObj']['freqCenter_Hz']
+samp_rate = 245.76e6
+freq_center = 2.45e9
+print('! warning: hardcoded values')
+print('Sample rate:', samp_rate)
+print('Center frequency:', freq_center)
 
 num_samples = len(complex_values)
 t = np.arange(num_samples) / samp_rate
@@ -47,8 +44,8 @@ plt.figure(figsize=(6.4, 4.8))
 plt.rc('axes', labelsize=20)    # fontsize of the x and y labels
 plt.rc('xtick', labelsize=20)   # fontsize of the tick labels
 plt.rc('ytick', labelsize=20)   # fontsize of the tick labels
-plt.xticks(np.arange(min(f_mhz), max(f_mhz)+1, 25))
-plt.yticks(np.arange(min(t_ms), max(t_ms)+1, 5))
+# plt.xticks(np.arange(min(f_mhz), max(f_mhz)+1, 25))
+# plt.yticks(np.arange(min(t_ms), max(t_ms)+1, 5))
 # plt.yticks([0, 5, 10, 15, 20])
 plt.xlim([min(f_mhz), max(f_mhz)+0.1])
 plt.ylim([min(t_ms), max(t_ms)+0.05])
@@ -60,5 +57,5 @@ plt.xlabel("Frequency (MHz)")
 plt.ylabel("Time (ms)")
 # plt.title("Spectrogram (RFSynth)", size=28)
 plt.tight_layout()
-plt.savefig('figs/rfsynth_spectrogram_' + filename + '.png')
+plt.savefig('figs/binary_spectrogram_' + filename + '.png')
 # plt.savefig('figs/rfsynth_spectrogram_' + filename + '.pdf', format='pdf')

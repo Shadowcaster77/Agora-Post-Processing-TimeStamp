@@ -16,8 +16,6 @@ import time as t
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.cm as cm
-import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
@@ -46,7 +44,7 @@ filename format: sensing_fft_
 font_title = 20
 font_label = 20
 font_tick = 20
-fig_size = (6, 4) # default value
+fig_size = (6.4, 4.8) # default value
 
 time_start = t.perf_counter()
 
@@ -79,81 +77,28 @@ num_symbol = num_frame * num_symbol_per_frame
 time = np.linspace(0, num_symbol, num_symbol + 1)
 freq = np.linspace(0, fft_size, fft_size + 1)
 data_abs = np.array(abs_values)
+# avoid log(0) = -inf
+data_abs[data_abs == 0] = min(data_abs[data_abs > 0])
+data_abs = 10 * np.log10(data_abs)
 
-# calculate the noise power and refer the signal to that and get real power
-threshold = np.median(np.quantile(data_abs, q=0.7))
-noise = data_abs.copy()
-noise[noise>threshold] = np.nan
-noise_power = np.nanmean(np.abs(noise)**2, axis=(0, 1))
-noise_power_db = 10 * np.log10(noise_power)
-offset = -noise_power_db + (-173.8)
-print(offset)
-# offset = -108.78414924975709 # profiled value from 'sparse' config (100 MHz)
-# offset = -115.95924359478522 # profiled value from 'wb' config (500 MHz)
-noise_figure_sim = 0
-noise_figure_ota = 20
-# noise_figure = noise_figure_sim
-noise_figure = noise_figure_ota
+print('max of data_abs: ', np.max(data_abs))
+print('min of data_abs: ', np.min(data_abs))
+print('mean of data_abs: ', np.mean(data_abs))
 
-fig = plt.figure(figsize=fig_size)
-im = plt.pcolormesh(freq, time, 10 * np.log10(data_abs**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
-# cbar = plt.colorbar()
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("PSD (dBm/Hz)", size=font_label)
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, data_abs, shading='flat', linewidth=0)
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
 # plt.title("Input Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-xtick_label = np.arange(-50, 51, 25)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-# ytick_label = np.arange(0, 20.49, 5.12)
-# plt.yticks(np.arange(0, num_symbol+1, 500), ytick_label)
-ytick_label = np.arange(0, 20.49, 5).astype(int)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf.png')
-plt.close(fig)
-
-# # Plot colorbar separately
-# # Create the ScalarMappable from the pcolormesh object
-# mappable = cm.ScalarMappable(norm=im.norm, cmap=im.cmap)
-
-# # Create a new figure for the vertical colorbar
-# fig_cb = plt.figure(figsize=(1.0, 6))  # Tall and narrow figure for vertical bar
-# cbar_ax = fig_cb.add_axes([0.3, 0.05, 0.4, 0.9])  # [left, bottom, width, height]
-
-# # Draw the colorbar
-# cbar = plt.colorbar(mappable, cax=cbar_ax, orientation='vertical')
-# cbar.ax.tick_params(labelsize=font_tick, direction='out')
-# cbar.ax.set_ylabel("Power (dB)", size=font_label, labelpad=10)
-
-# # Save the figure (with tight bounding box to avoid cutoff)
-# fig_cb.savefig('figs/colorbar_imag_proc_' + RFSYNTH_DATA_ID + '_vertical.pdf',
-#                format='pdf',
-#                bbox_inches='tight',
-#                dpi=300)
-# plt.close(fig_cb)
-# Create the ScalarMappable from the pcolormesh object
-mappable = cm.ScalarMappable(norm=im.norm, cmap=im.cmap)
-
-# Create a new figure for the horizontal colorbar
-fig_cb = plt.figure(figsize=(6, 1.0))  # Wide and short figure for horizontal bar
-cbar_ax = fig_cb.add_axes([0.05, 0.5, 0.9, 0.4])  # [left, bottom, width, height]
-
-# Draw the colorbar
-cbar = plt.colorbar(mappable, cax=cbar_ax, orientation='horizontal')
-cbar.ax.tick_params(labelsize=font_tick, direction='out')
-cbar.ax.set_xlabel("Power Spectral Density (dBm/Hz)", size=font_label, labelpad=10)
-
-# Save the figure (with tight bounding box to avoid cutoff)
-fig_cb.savefig('figs/colorbar_imag_proc_' + RFSYNTH_DATA_ID + '_horizontal.pdf',
-               format='pdf',
-               bbox_inches='tight',
-               dpi=300)
-plt.close(fig_cb)
+plt.close()
 
 ################################################################################
 # Summation over time axis -> project the sum to frequency axis
@@ -163,9 +108,9 @@ proj_freq = np.sum(data_abs, axis=0)
 plt.figure(figsize=fig_size)
 plt.plot(freq[:-1], proj_freq)
 plt.title('Projection to Freq Axis', size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
+plt.xlabel('Frequency Index', size=font_label)
 plt.ylabel('Power Sum', size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
 # plt.yticks(np.arange(0, 13, 2))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
@@ -189,12 +134,12 @@ print('thres_time_sum:', thres_time_sum)
 plt.figure(figsize=fig_size)
 plt.plot(freq[:-1], proj_freq)
 plt.axhline(y=thres_time_sum, color='r',
-            linestyle='--', label=rf'$\theta_{{PSD}}$ = {thres_time_sum:.2f}')
+            linestyle='--', label='Threshold = {}'.format(thres_time_sum))
 # plt.title('Projection to Freq Axis + Threshold', size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
+plt.xlabel('Frequency Index', size=font_label)
 plt.ylabel('PSD Sum', size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, 16, 5))
+plt.xticks(np.arange(0, fft_size+1, 256))
+# plt.yticks(np.arange(0, 13, 2))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.legend(prop={'size': 20})
 plt.tight_layout()
@@ -206,22 +151,21 @@ plt.close()
 
 proj_freq_bin = proj_freq > thres_time_sum
 
+# thres = thres_time_sum / num_symbol
+# data_strip = data_abs > thres * 3
+
 data_strip = data_abs * proj_freq_bin[np.newaxis, :]
+data_strip = data_abs # no thresholding
 
 plt.figure(figsize=fig_size)
-# plt.pcolormesh(freq, time, 10 * np.log10(data_strip), shading='flat', linewidth=0)
-im = plt.pcolormesh(freq, time, 10 * np.log10(data_strip**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
-# cbar = plt.colorbar()
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("Power (dB)", size=font_label)
-# plt.title("Stripped Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.pcolormesh(freq, time, data_strip, shading='flat', linewidth=0)
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_high_energy.png')
@@ -234,11 +178,29 @@ print('sum of cx : ', np.sum(data_strip))
 print('max of cx : ', np.max(data_strip))
 print('min of cx : ', np.min(data_strip))
 
+print('max of data_strip: ', np.max(data_strip))
+print('min of data_strip: ', np.min(data_strip))
+print('mean of data_strip: ', np.mean(data_strip))
+
 # Rescale image to 0-255
 data_strip = (data_strip - np.min(data_strip)) / (np.max(data_strip) - np.min(data_strip)) * 255
 data_strip = data_strip.astype(np.uint8)
 
-print('sum of gray scale imag: ', np.sum(data_strip))
+print('max of gray scale imag: ', np.max(data_strip))
+print('min of gray scale imag: ', np.min(data_strip))
+print('mean of gray scale imag: ', np.mean(data_strip))
+
+his, bins = np.histogram(data_strip, np.arange(0, 257))
+plt.figure(figsize=fig_size)
+plt.plot(bins[:-1], his)
+plt.title('Histogram of Gray Scale Image', size=font_title)
+plt.xlabel('Pixel Value', size=font_label)
+plt.ylabel('Number of Pixels', size=font_label)
+plt.xticks(np.arange(0, 257, 32))
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('figs/imag_proc_hist.png')
+plt.close()
 
 def otsu(gray):
     pixel_number = len(gray)
@@ -266,7 +228,7 @@ def otsu(gray):
     final_img = gray.copy()
     final_img[gray >= final_thresh] = 1
     final_img[gray < final_thresh] = 0
-    return final_img
+    return final_img, final_thresh
 
 def gaussian_thres(arr, window_size=11, c=3):
     pad_size = window_size // 2
@@ -278,15 +240,23 @@ def gaussian_thres(arr, window_size=11, c=3):
     arr_thres[arr > local_mean - c] = 1
     return arr_thres
 
+otsu_list = []
+
 for i in range(len(data_strip[0])):
-    if proj_freq_bin[i]:
-        # print("subcarrier index:", i)
-        # print("max = ", np.max(data_strip[:, i]))
-        # print("min = ", np.min(data_strip[:, i]))
-        # print("sum:", np.sum(data_strip[:, i]))
-        data_strip[:, i] = otsu(data_strip[:, i])
-        # print("num after otsu:", np.sum(data_strip[:, i]))
-        # data_strip[:, i] = gaussian_thres(data_strip[:, i])
+
+    data_strip[:, i], thres_temp = otsu(data_strip[:, i])
+    otsu_list.append(thres_temp)
+    # if proj_freq_bin[i]:
+    #     # print("subcarrier index:", i)
+    #     # print("max = ", np.max(data_strip[:, i]))
+    #     # print("min = ", np.min(data_strip[:, i]))
+    #     # print("sum:", np.sum(data_strip[:, i]))
+    #     data_strip[:, i], thres_temp = otsu(data_strip[:, i])
+    #     otsu_list.append(thres_temp)
+    #     # print("num after otsu:", np.sum(data_strip[:, i]))
+    #     # data_strip[:, i] = gaussian_thres(data_strip[:, i])
+    # else:
+    #     otsu_list.append(0)
 # data_strip = otsu(data_strip)
 
 print("num of ones:", np.sum(data_strip))
@@ -297,57 +267,68 @@ plt.pcolormesh(freq, time, data_strip, cmap=ListedColormap(['white', 'black']),
                shading='flat', linewidth=0)
 # plt.colorbar(label="Power/Frequency (dB/Hz)")
 # plt.title("Binarized Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_otsu.png')
 plt.close()
 
+# plot otsu threshold
+plt.figure(figsize=fig_size)
+plt.plot(freq[:-1], otsu_list)
+plt.title('Otsu Threshold', size=font_title)
+plt.xlabel('Frequency Index', size=font_label)
+plt.ylabel('Otsu Threshold', size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('figs/imag_proc_otsu.png')
+plt.close()
+
 ################################################################################
 # Dilate the binary image to form continuous energy regions
 
-struct_element = np.array([1, 1, 1])
-kernel = np.ones((3, 3), np.uint8)
+##
+se_3 = np.array([1, 1, 1])
+kernel_3 = np.ones((3, 3), np.uint8)
+kernel_5 = np.ones((5, 5), np.uint8)
+kernel_7 = np.ones((11, 11), np.uint8)
+
+# Vertical dilation/erosion
+for i in range(len(data_strip[0])):
+    data_strip[:, i] = binary_erosion(data_strip[:, i], structure=se_3)
+    data_strip[:, i] = binary_dilation(data_strip[:, i], structure=se_3)
+
+data_strip = binary_erosion(data_strip, structure=kernel_3, border_value=0)
+data_strip = binary_dilation(data_strip, structure=kernel_3)
 
 # Fill the holes in the energy blocks
-data_strip = binary_dilation(data_strip, structure=kernel)
-data_strip = binary_dilation(data_strip, structure=kernel)
-print('num of ones after dilation:', np.sum(data_strip))
-data_strip = binary_erosion(data_strip, structure=kernel, border_value=0)
-print('num of ones after erosion:', np.sum(data_strip))
-data_strip = binary_erosion(data_strip, structure=kernel, border_value=0)
+data_strip = binary_dilation(data_strip, structure=kernel_5)
+data_strip = binary_erosion(data_strip, structure=kernel_5, border_value=0)
 
-# Eliminate the vertical lines that is out of blocks
-data_strip = binary_erosion(data_strip, structure=kernel, border_value=0)
-data_strip = binary_erosion(data_strip, structure=kernel, border_value=0)
-data_strip = binary_dilation(data_strip, structure=kernel)
-data_strip = binary_dilation(data_strip, structure=kernel)
+data_strip = binary_erosion(data_strip, structure=kernel_7, border_value=0)
+data_strip = binary_dilation(data_strip, structure=kernel_7)
 
-# Horizontal dilation/erosion
-for i in range(len(data_strip)):
-    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
-    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
-    data_strip[i] = binary_erosion(data_strip[i], structure=struct_element)
-    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
-    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
-    data_strip[i] = binary_dilation(data_strip[i], structure=struct_element)
+##
 
 plt.figure(figsize=fig_size)
 plt.pcolormesh(freq, time, data_strip, cmap=ListedColormap(['white', 'black']),
                shading='flat', linewidth=0)
 # plt.colorbar(label="Power/Frequency (dB/Hz)")
 # plt.title("TF Plot after Morphological Operation", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_dilated.png')
 plt.close()
+
+# exit(0)
 
 ################################################################################
 # Find and label the connected components
@@ -362,30 +343,6 @@ plt.close()
 UNDETECTED_ENERGY = 1
 NO_ENERGY = 0
 boxes = []
-
-# sys.setrecursionlimit(10000)
-# # abbreviation: l (left), r (right), t (top), b (bottom)
-# def propagate(mat, x, y) -> list:
-#     ll = lr = lt = lb = x
-#     rl = rr = rt = rb = x
-#     tl = tr = tt = tb = y
-#     bl = br = bt = bb = y
-#     mat[x, y] = NO_ENERGY
-#     x_lim, y_lim = len(mat), len(mat[0])
-#     if x-1 >= 0 and mat[x-1, y] == UNDETECTED_ENERGY:
-#         [ll, rl, tl, bl] = propagate(mat, x-1, y)
-#     if x+1 < x_lim and mat[x+1, y] == UNDETECTED_ENERGY:
-#         [lr, rr, tr, br] = propagate(mat, x+1, y)
-#     if y-1 >= 0 and mat[x, y-1] == UNDETECTED_ENERGY:
-#         [lt, rt, tt, bt] = propagate(mat, x, y-1)
-#     if y+1 < y_lim and mat[x, y+1] == UNDETECTED_ENERGY:
-#         [lb, rb, tb, bb] = propagate(mat, x, y+1)
-#     l = min(x, ll, lr, lt, lb)
-#     r = max(x, rl, rr, rt, rb)
-#     t = min(y, tl, tr, tt, tb)
-#     b = max(y, bl, br, bt, bb)
-
-#     return [l, r, t, b]
 
 # non-recursive version, similar processing time but less memory (no stack)
 def propagate(mat, x, y) -> list:
@@ -422,28 +379,23 @@ for i in range(len(data_strip)):
 print('Number of boxes:', len(boxes))
 
 fig, ax = plt.subplots(figsize=fig_size)
-# im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat', linewidth=0)
-
-im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
+im = ax.pcolormesh(freq, time, data_abs, shading='flat', linewidth=0)
 
 for box in boxes:
     y1, y2, x1, x2 = box
     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='red', linewidth=1.5))
+                                   fill=None, edgecolor='r'))
     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
 
 # ax.set_title("Boxed Time-Freq Plot", size=font_title)
-ax.set_xlabel("Frequency (MHz)", size=font_label)
-ax.set_ylabel("Time (ms)", size=font_label)
+ax.set_xlabel("Frequency Index", size=font_label)
+ax.set_ylabel("Time Index", size=font_label)
 ax.tick_params(axis='both', which='major', labelsize=font_tick)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
-# cbar = plt.colorbar(im, label="Power (dB)")
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("Power (dB)", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
+cbar = plt.colorbar(im, label="Power (dB)")
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_box.png')
 plt.close()
@@ -461,7 +413,6 @@ for box in boxes:
 
 time_end = t.perf_counter()
 print(f"Execution time: {time_end - time_start:.2f} seconds")
-
 
 ################################################################################
 # Save the bounding boxes to a file

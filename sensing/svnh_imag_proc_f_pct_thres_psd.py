@@ -16,8 +16,6 @@ import time as t
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import matplotlib.cm as cm
-import matplotlib.colors as colors
 from matplotlib.colors import ListedColormap
 from scipy.ndimage import binary_dilation
 from scipy.ndimage import binary_erosion
@@ -46,7 +44,7 @@ filename format: sensing_fft_
 font_title = 20
 font_label = 20
 font_tick = 20
-fig_size = (6, 4) # default value
+fig_size = (6.4, 4.8) # default value
 
 time_start = t.perf_counter()
 
@@ -80,80 +78,20 @@ time = np.linspace(0, num_symbol, num_symbol + 1)
 freq = np.linspace(0, fft_size, fft_size + 1)
 data_abs = np.array(abs_values)
 
-# calculate the noise power and refer the signal to that and get real power
-threshold = np.median(np.quantile(data_abs, q=0.7))
-noise = data_abs.copy()
-noise[noise>threshold] = np.nan
-noise_power = np.nanmean(np.abs(noise)**2, axis=(0, 1))
-noise_power_db = 10 * np.log10(noise_power)
-offset = -noise_power_db + (-173.8)
-print(offset)
-# offset = -108.78414924975709 # profiled value from 'sparse' config (100 MHz)
-# offset = -115.95924359478522 # profiled value from 'wb' config (500 MHz)
-noise_figure_sim = 0
-noise_figure_ota = 20
-# noise_figure = noise_figure_sim
-noise_figure = noise_figure_ota
-
-fig = plt.figure(figsize=fig_size)
-im = plt.pcolormesh(freq, time, 10 * np.log10(data_abs**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
-# cbar = plt.colorbar()
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("PSD (dBm/Hz)", size=font_label)
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat', linewidth=0)
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
 # plt.title("Input Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-xtick_label = np.arange(-50, 51, 25)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-# ytick_label = np.arange(0, 20.49, 5.12)
-# plt.yticks(np.arange(0, num_symbol+1, 500), ytick_label)
-ytick_label = np.arange(0, 20.49, 5).astype(int)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf.png')
-plt.close(fig)
-
-# # Plot colorbar separately
-# # Create the ScalarMappable from the pcolormesh object
-# mappable = cm.ScalarMappable(norm=im.norm, cmap=im.cmap)
-
-# # Create a new figure for the vertical colorbar
-# fig_cb = plt.figure(figsize=(1.0, 6))  # Tall and narrow figure for vertical bar
-# cbar_ax = fig_cb.add_axes([0.3, 0.05, 0.4, 0.9])  # [left, bottom, width, height]
-
-# # Draw the colorbar
-# cbar = plt.colorbar(mappable, cax=cbar_ax, orientation='vertical')
-# cbar.ax.tick_params(labelsize=font_tick, direction='out')
-# cbar.ax.set_ylabel("Power (dB)", size=font_label, labelpad=10)
-
-# # Save the figure (with tight bounding box to avoid cutoff)
-# fig_cb.savefig('figs/colorbar_imag_proc_' + RFSYNTH_DATA_ID + '_vertical.pdf',
-#                format='pdf',
-#                bbox_inches='tight',
-#                dpi=300)
-# plt.close(fig_cb)
-# Create the ScalarMappable from the pcolormesh object
-mappable = cm.ScalarMappable(norm=im.norm, cmap=im.cmap)
-
-# Create a new figure for the horizontal colorbar
-fig_cb = plt.figure(figsize=(6, 1.0))  # Wide and short figure for horizontal bar
-cbar_ax = fig_cb.add_axes([0.05, 0.5, 0.9, 0.4])  # [left, bottom, width, height]
-
-# Draw the colorbar
-cbar = plt.colorbar(mappable, cax=cbar_ax, orientation='horizontal')
-cbar.ax.tick_params(labelsize=font_tick, direction='out')
-cbar.ax.set_xlabel("Power Spectral Density (dBm/Hz)", size=font_label, labelpad=10)
-
-# Save the figure (with tight bounding box to avoid cutoff)
-fig_cb.savefig('figs/colorbar_imag_proc_' + RFSYNTH_DATA_ID + '_horizontal.pdf',
-               format='pdf',
-               bbox_inches='tight',
-               dpi=300)
-plt.close(fig_cb)
+plt.close()
 
 ################################################################################
 # Summation over time axis -> project the sum to frequency axis
@@ -163,9 +101,9 @@ proj_freq = np.sum(data_abs, axis=0)
 plt.figure(figsize=fig_size)
 plt.plot(freq[:-1], proj_freq)
 plt.title('Projection to Freq Axis', size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
+plt.xlabel('Frequency Index', size=font_label)
 plt.ylabel('Power Sum', size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
 # plt.yticks(np.arange(0, 13, 2))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
@@ -184,22 +122,31 @@ thres_time_sum = 8.5e-4 * num_symbol * fft_size / 1024
 # thres_time_sum = 0.8 # used when the spectrogram has 200 frames (1000 symbols)
 # thres_time_sum = 0 # bypassing the thresholding
 
-print('thres_time_sum:', thres_time_sum)
+thres_pct = 0.30
+# find the first 5% lowest values
+thres_time_sum_pct = np.percentile(proj_freq, 100 * thres_pct)
 
+print('thres_time_sum:', thres_time_sum)
 plt.figure(figsize=fig_size)
 plt.plot(freq[:-1], proj_freq)
 plt.axhline(y=thres_time_sum, color='r',
-            linestyle='--', label=rf'$\theta_{{PSD}}$ = {thres_time_sum:.2f}')
+            linestyle='--', label='Threshold = {}'.format(thres_time_sum))
+plt.axhline(y=thres_time_sum_pct, color='g', linestyle='--',
+            label='{} Threshold = {:.3f}'.format(thres_pct, thres_time_sum_pct))
 # plt.title('Projection to Freq Axis + Threshold', size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
+plt.xlabel('Frequency Index', size=font_label)
 plt.ylabel('PSD Sum', size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, 16, 5))
+plt.xticks(np.arange(0, fft_size+1, 256))
+# plt.yticks(np.arange(0, 13, 2))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.legend(prop={'size': 20})
 plt.tight_layout()
 plt.savefig('figs/imag_proc_proj_freq_thres.pdf', format='pdf')
 plt.close()
+
+thres_time_sum = thres_time_sum_pct
+print('setting thres_time_sum to thres_time_sum_pct!!! (val = {})'.
+      format(thres_time_sum))
 
 ################################################################################
 # Plot the spectrogram with the filtered time axis
@@ -209,19 +156,15 @@ proj_freq_bin = proj_freq > thres_time_sum
 data_strip = data_abs * proj_freq_bin[np.newaxis, :]
 
 plt.figure(figsize=fig_size)
-# plt.pcolormesh(freq, time, 10 * np.log10(data_strip), shading='flat', linewidth=0)
-im = plt.pcolormesh(freq, time, 10 * np.log10(data_strip**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
-# cbar = plt.colorbar()
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("Power (dB)", size=font_label)
+plt.pcolormesh(freq, time, 10 * np.log10(data_strip), shading='flat', linewidth=0)
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
 # plt.title("Stripped Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_high_energy.png')
@@ -297,10 +240,10 @@ plt.pcolormesh(freq, time, data_strip, cmap=ListedColormap(['white', 'black']),
                shading='flat', linewidth=0)
 # plt.colorbar(label="Power/Frequency (dB/Hz)")
 # plt.title("Binarized Time-Freq Plot", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_otsu.png')
@@ -340,10 +283,10 @@ plt.pcolormesh(freq, time, data_strip, cmap=ListedColormap(['white', 'black']),
                shading='flat', linewidth=0)
 # plt.colorbar(label="Power/Frequency (dB/Hz)")
 # plt.title("TF Plot after Morphological Operation", size=font_title)
-plt.xlabel("Frequency (MHz)", size=font_label)
-plt.ylabel("Time (ms)", size=font_label)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
 plt.tick_params(axis='both', which='major', labelsize=font_tick)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_dilated.png')
@@ -422,28 +365,23 @@ for i in range(len(data_strip)):
 print('Number of boxes:', len(boxes))
 
 fig, ax = plt.subplots(figsize=fig_size)
-# im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat', linewidth=0)
-
-im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs**2)+offset+noise_figure,
-                    vmax=-135+noise_figure, vmin=-175+noise_figure,
-                    shading='flat', linewidth=0,
-                    cmap='jet')
+im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat', linewidth=0)
 
 for box in boxes:
     y1, y2, x1, x2 = box
     ax.add_patch(patches.Rectangle((x1, y1), x2-x1, y2-y1, 
-                                   fill=None, edgecolor='red', linewidth=1.5))
+                                   fill=None, edgecolor='r'))
     print(f"Box: ({x1}, {y1}) to ({x2}, {y2})")
 
 # ax.set_title("Boxed Time-Freq Plot", size=font_title)
-ax.set_xlabel("Frequency (MHz)", size=font_label)
-ax.set_ylabel("Time (ms)", size=font_label)
+ax.set_xlabel("Frequency Index", size=font_label)
+ax.set_ylabel("Time Index", size=font_label)
 ax.tick_params(axis='both', which='major', labelsize=font_tick)
-plt.xticks(np.arange(0, fft_size+1, 256), xtick_label)
-plt.yticks(np.arange(0, num_symbol+1, 488), ytick_label)
-# cbar = plt.colorbar(im, label="Power (dB)")
-# cbar.ax.tick_params(labelsize=font_tick)
-# cbar.ax.set_ylabel("Power (dB)", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
+cbar = plt.colorbar(im, label="Power (dB)")
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
 plt.tight_layout()
 plt.savefig('figs/imag_proc_tf_box.png')
 plt.close()

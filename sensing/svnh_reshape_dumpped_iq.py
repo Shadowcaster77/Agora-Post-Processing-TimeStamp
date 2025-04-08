@@ -15,10 +15,10 @@ file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
 # file_midfix = '_sym'
 # file_postfix = '_sc0_size1024.bin'
 # frame_schedule = "PUUUUUUUUUUUUUUUUGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG"
-frame_schedule = "PUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
+frame_schedule = "PUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU"
 num_frame = 200
-sensing_unit_in_frame = 20
-sensing_block_size = 128
+sensing_unit_in_frame = 40
+sensing_block_size = 32
 fft_size = 1024
 
 num_u = frame_schedule.count('U')

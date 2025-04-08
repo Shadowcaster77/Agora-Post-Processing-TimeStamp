@@ -23,8 +23,8 @@ file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
 num_frame = 40
 num_symbol_per_frame = 50
-config_name = 'dense_ds3'
-fig_name = 'figs/searchlight_2d_best_' + config_name + '.png'
+config_name = input("Enter the rfsynth id (e.g., test): ") or 'test'
+fig_name = 'figs/schlt_2d_best_' + config_name + '.png'
 
 '''
 filename format: sensing_fft_
@@ -33,6 +33,12 @@ filename format: sensing_fft_
                  sc<subcarrier_id>_
                  size<fft_size>.bin
 '''
+
+# figure settings (font size)
+font_title = 20
+font_label = 20
+font_tick = 20
+fig_size = (6.4, 4.8) # default value
 
 time_start = t.perf_counter()
 
@@ -61,22 +67,35 @@ print(f"{len(abs_values)} symbols ", end='')
 print(f"({num_frame} frames x each {num_symbol_per_frame} symbols), ")
 print(f"each with {fft_size} complex numbers.")
 
+num_symbol = num_frame * num_symbol_per_frame
+time = np.linspace(0, num_symbol, num_symbol + 1)
+freq = np.linspace(0, fft_size, fft_size + 1)
+data_abs = np.array(abs_values)
+
+plt.figure(figsize=fig_size)
+plt.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat', linewidth=0)
+cbar = plt.colorbar()
+cbar.ax.tick_params(labelsize=font_tick)
+cbar.ax.set_ylabel("Power (dB)", size=font_label)
+# plt.title("Input Time-Freq Plot", size=font_title)
+plt.xlabel("Frequency Index", size=font_label)
+plt.ylabel("Time Index", size=font_label)
+plt.xticks(np.arange(0, fft_size+1, 256))
+plt.yticks(np.arange(0, num_symbol+1, 500))
+plt.tick_params(axis='both', which='major', labelsize=font_tick)
+plt.tight_layout()
+plt.savefig('figs/schlt_tf.png')
+plt.close()
+
 ################################################################################
 # Generate the kernel sizes for the Searchlight method
 
-num_symbol = num_frame * num_symbol_per_frame
-time = np.linspace(0, num_symbol, num_symbol + 1)
-freq = np.linspace(0, fft_size, fft_size+1)
-data_abs = np.array(abs_values)
-
 # Box size search in time-bandwidth product
-t_size = list(range(1, num_symbol))
+# t_size = list(range(1, num_symbol))
+t_size = [1 << i for i in range(int(math.log2(num_symbol)+1))]
 # f_size = list(range(1, fft_size))
 # only accept power of 2 sizes
 f_size = [1 << i for i in range(int(math.log2(fft_size)+1))]
-# test
-# t_size = list(range(1, 5))
-# f_size = list(range(1, 3))
 
 # Populate time-bandwidth products
 tb_prod_list = list(product(t_size, f_size))
@@ -114,10 +133,6 @@ def get_sum_in_area(psum, x1, y1, x2, y2):
     c = psum[x2][y1-1] if y1-1 >= 0 else 0
     d = psum[x2][y2]
     return d - c - b + a
-
-# ps_exp = np.array([[10, 30, 60], [5, 10, 20], [2, 4, 6]])
-# ps_exp = np.array([[10, 30, 60], [15, 45, 95], [17, 51, 107]])
-# print(get_ps_in_area(ps_exp, 0, 1, 2, 2))
 
 def clean_area(mat, x1, y1, x2, y2):
     assert x1 >= 0 and y1 >= 0 and x2 < len(mat) and y2 < len(mat[0]),\
@@ -319,7 +334,7 @@ for box in boxes:
 
 for center in box_centers:
     y, x = center
-    ax.plot(x, y, 'wD', markersize=6)
+    ax.plot(x, y, 'wD', markersize=2)
 
 # plt.colorbar(im, label="Power/Frequency (1/Hz)")
 plt.colorbar(im, label="Power/Frequency (dB/Hz)")
@@ -331,3 +346,5 @@ plt.savefig(fig_name)
 
 time_end = t.perf_counter()
 print('execution time = {}'.format(time_end - time_start))
+print('number of boxes = {}'.format(len(boxes)))
+print('rfsynth id = {}'.format(config_name))

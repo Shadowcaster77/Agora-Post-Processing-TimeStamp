@@ -5,7 +5,6 @@
 # Author: Chung-Hsuan Tung
 ################################################################################
 
-import time as t
 import numpy as np
 import math
 import matplotlib.pyplot as plt
@@ -17,14 +16,13 @@ from scipy.ndimage import laplace
 
 import helper
 
-file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
-# file_prefix = '../data/sensing/sensed_fft_frame'
+# file_prefix = '../../savannah_isac/files/sensing/sensed_fft_frame'
+file_prefix = '../data/sensing/sensed_fft_frame'
 file_midfix = '_sym'
 file_postfix = '_sc0_size1024.bin'
-num_frame = 40
-num_symbol_per_frame = 50
-config_name = 'dense_ds3'
-fig_name = 'figs/searchlight_2d_best_' + config_name + '.png'
+num_frame = 20
+num_symbol_per_frame = 5
+fig_name = 'figs/searchlight_2d.png'
 
 '''
 filename format: sensing_fft_
@@ -33,8 +31,6 @@ filename format: sensing_fft_
                  sc<subcarrier_id>_
                  size<fft_size>.bin
 '''
-
-time_start = t.perf_counter()
 
 ################################################################################
 # Read the IQ samples for Savannah's DumpToFile() in DoSensingFreq
@@ -156,16 +152,20 @@ def clean_area(mat, x1, y1, x2, y2):
 
 # Manually tuned threshold
 thres_power_rate_change_v = 0.13
-thres_power_rate_change_h = 0.008
+thres_power_rate_change_h = 0.005
 # vertical 0.13
 # horizontal 0.004
 
 print('thres_power_rate_change_v = {}'.format(thres_power_rate_change_v))
 print('thres_power_rate_change_h = {}'.format(thres_power_rate_change_h))
 
+# data_abs_db = 10 * np.log10(data_abs)
 # Smooth the spectrogram with moving average
 data_abs_smooth_v = convolve(data_abs, np.ones((5, 50)) / 250, mode='constant')
-data_abs_smooth_h = convolve(data_abs, np.ones((10, 100)) / 1000, mode='constant')
+# data_abs_smooth_h = convolve(data_abs, np.ones((10, 90)) / 900, mode='constant')
+# data_abs_smooth_h = convolve(data_abs, np.ones((10, 30)) / 300, mode='constant')
+data_abs_smooth_h = convolve(data_abs, np.ones((5, 15)) / 75, mode='constant')
+data_abs_smooth_h = convolve(data_abs_smooth_h, np.ones((5, 20)) / 100, mode='constant')
 # data_abs_smooth_h = convolve(data_abs_smooth_h, np.ones((1, 10)) / 10, mode='constant')
 # data_abs_smooth_h = convolve(data_abs_smooth_h, np.ones((1, 50)) / 50, mode='constant')
 # data_abs_smooth = convolve(data_abs_smooth, np.ones((1, 50)) / 50, mode='constant')
@@ -241,43 +241,43 @@ print('thres_energy = {}'.format(thres_energy))
 boxes = []
 box_centers = []
 
-# Iterate through kernels
-for (x, y) in tb_prod_list:
-    area = x * y
-    for i in range(0, num_symbol):
-        for j in range(0, fft_size):
-            if i+x < num_symbol and j+y < fft_size:
-                # Calculate the energy box
-                energy_sum = get_sum_in_area(ps_abs, i, j, i+x, j+y)
-                energy_avg = energy_sum / area
-                if energy_avg > thres_energy:
-                    print('energy_sum = {}'.format(energy_sum))
-                    # print('energy_avg = {}'.format(energy_avg))
-                    print('kernel size = ({}, {})'.format(x, y))
-                    # boxes.append([i, j, i+x, j+y])
-                    box_centers.append([i+x//2, j+y//2])
-                    # Identify the box edge via power change rate
-                    edges = find_edge(prc_v, prc_h,
-                                      thres_power_rate_change_v,
-                                      thres_power_rate_change_h,
-                                      i+x//2, j+y//2)
-                    boxes.append([edges['down'], edges['left'], edges['up'],
-                                  edges['right']])
-                    # Remove found energy box
-                    ps_abs = clean_area(abs_values, edges['down'],
-                                        edges['left'], edges['up'],
-                                        edges['right'])
-                    print('box = {}'.format(boxes[-1]))
-                # print('running with energy sum = {}'.format(energy_sum))
-    # print('kernel size = ({}, {})'.format(x, y))
+# # Iterate through kernels
+# for (x, y) in tb_prod_list:
+#     area = x * y
+#     for i in range(0, num_symbol):
+#         for j in range(0, fft_size):
+#             if i+x < num_symbol and j+y < fft_size:
+#                 # Calculate the energy box
+#                 energy_sum = get_sum_in_area(ps_abs, i, j, i+x, j+y)
+#                 energy_avg = energy_sum / area
+#                 if energy_avg > thres_energy:
+#                     print('energy_sum = {}'.format(energy_sum))
+#                     # print('energy_avg = {}'.format(energy_avg))
+#                     print('kernel size = ({}, {})'.format(x, y))
+#                     # boxes.append([i, j, i+x, j+y])
+#                     box_centers.append([i+x//2, j+y//2])
+#                     # Identify the box edge via power change rate
+#                     edges = find_edge(prc_v, prc_h,
+#                                       thres_power_rate_change_v,
+#                                       thres_power_rate_change_h,
+#                                       i+x//2, j+y//2)
+#                     boxes.append([edges['down'], edges['left'], edges['up'],
+#                                   edges['right']])
+#                     # Remove found energy box
+#                     ps_abs = clean_area(abs_values, edges['down'],
+#                                         edges['left'], edges['up'],
+#                                         edges['right'])
+#                     print('box = {}'.format(boxes[-1]))
+#                 # print('running with energy sum = {}'.format(energy_sum))
+#     # print('kernel size = ({}, {})'.format(x, y))
 
-print('number of boxes = {}'.format(len(boxes)))
-# print(boxes)
+# print('number of boxes = {}'.format(len(boxes)))
+# # print(boxes)
 
-stored_boxes = np.array(boxes)
-stored_centers = np.array(box_centers)
-np.save('stored_centers_' + config_name + '.npy', stored_centers)
-np.save('stored_boxes_' + config_name + '.npy', stored_boxes)
+# stored_boxes = np.array(boxes)
+# stored_centers = np.array(box_centers)
+# np.save('stored_centers.npy', stored_centers)
+# np.save('stored_boxes.npy', stored_boxes)
 
 # read_boxes = np.load('stored_boxes.npy')
 # read_centers = np.load('stored_centers.npy')
@@ -305,7 +305,7 @@ im = ax.pcolormesh(freq, time, 10 * np.log10(data_abs), shading='flat')
 # im = ax.pcolormesh(freq[:-1], time, power_rate_change_h, shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], prc_v_abs > thres_power_rate_change_v, shading='flat')
 # im = ax.pcolormesh(freq, time[:-1], prc_v_abs, shading='flat')
-# im = ax.pcolormesh(freq[:-1], time, prc_h > thres_power_rate_change_h, shading='flat')
+# im = ax.pcolormesh(freq[:-1], time, prc_h_abs > thres_power_rate_change_h, shading='flat')
 # im = ax.pcolormesh(freq[:-1], time, prc_h_abs, shading='flat')
 ax.set_title("Time-Freq Plot", size=28)
 ax.set_xlabel("Subcarrier Index", size=24)
@@ -326,8 +326,3 @@ plt.colorbar(im, label="Power/Frequency (dB/Hz)")
 # plt.colorbar(im, label="Power change rate > threhold (T/F)")
 plt.tight_layout()
 plt.savefig(fig_name)
-
-################################################################################
-
-time_end = t.perf_counter()
-print('execution time = {}'.format(time_end - time_start))

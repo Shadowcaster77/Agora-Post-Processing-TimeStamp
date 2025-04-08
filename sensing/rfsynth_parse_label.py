@@ -18,12 +18,13 @@ import csv
 
 import helper
 
-filename = 'test'
+filename = input("Enter the rfsynth id (e.g., test): ") or 'test'
+# filename = 'dense'
 rfsynth_dir = '../../rfsynth'
 matlab_dir = rfsynth_dir + '/matlab'
 json_path = matlab_dir + '/examples/' + filename + '.json' # metadata
 data_path = matlab_dir + '/examples/' + filename + '.32cf' # raw I/Q samples
-cfg_path = matlab_dir + '/examples/config.yml' # configuration
+cfg_path = matlab_dir + '/examples/config_' + filename + '.yml' # configuration
 
 singal_types = ['WlanNonHT80211g', 'Bluetooth', 'Ds3', 'WidebandThermalWgn']
 
