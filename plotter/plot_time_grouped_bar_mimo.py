@@ -61,7 +61,7 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     ############################################################################
 
     # 100 MHz links, MCS17
-    dsp_stages = [r'1$\times$1', r'2$\times$2', r'4$\times$4']
+    dsp_stages = [r'1$\times$1', r'2$\times$2', r'4$\times$4', r'8$\times$8']
     config = ['Agora', 'Savannah-mc',
               'Savannah-mc (arma-vec)', 'Savannah-mc (arma-cube)']
     x_values = np.arange(len(dsp_stages))
@@ -70,10 +70,13 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     # 1x1: 2024-03-11_14-49-13.log (4 cores, 3 workers, relax 5 more slots)
     # 2x2: 2024-03-07_13-20-57.log (5 cores, 4 workers, relax 5 more slots)
     # 4x4: 2024-03-11_14-52-58.log (21 cores, 20 workers, relax 5 more slots)
+    # 8x8: 2025-04-15_17-06-19.log (2 cores, 1 worker, relax samp rate 15.35e5)
+
     # Savannah-mc (avx512):
     # 1x1: 2024-03-11_14-37-24.log (4 cores, 3 workers)
     # 2x2: 2024-03-07_12-59-33.log (5 cores, 4 workers)
     # 4x4: 2024-03-10_20-52-48.log (21 cores, 20 workers)
+    # 8x8: 2025-04-15_17-12-57.log (2 cores, 1 worker, relax samp rate 15.35e6)
     # Savannah-mc (arma-vec):
     # 1x1: 2024-08-02_01-01-17.log (4 cores, 3 workers)
     # 2x2: 2024-08-02_01-04-20.log (5 cores, 4 workers)
@@ -97,6 +100,7 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     siso_time =     [0.1068*3, 0.0004*3, 0.0006*3, 0.0006*3]
     mimo_2x2_time = [0.1346*4, 0.0011*4, 0.0035*4, 0.0196*4]
     mimo_4x4_time = [0.0781*20, 0.0023*20, 0.0104*20, 0.0808*20]
+    mimo_8x8_time = [1.3388, 0.2467, np.nan, np.nan]
 
     # # EQ Time, average time per frame
     # siso_time =     [0.3796*3, 0.0087*3]
@@ -108,16 +112,17 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     # siso_time =     [0.3796*3, 0.0132*3, 0.0160*3, 0.0156*3]
     # mimo_2x2_time = [0.3878*4, 0.0174*4, 0.0292*4, 0.0764*4]
     # mimo_4x4_time = [0.1113*20, 0.0087*20, 0.0175*20, 0.0429*20]
+    # mimo_8x8_time = [4.9453, 0.5443, np.nan, np.nan]
 
     # when reproduce on Jul 29, 2024, the siso eq time for avx512 is ~0.0132 ms
     # log: 2024-07-30_00-42-40.log (savannah-mc, 1x1, 4 cores, 3 workers)
 
 
     time = {
-        'Agora': [siso_time[0], mimo_2x2_time[0], mimo_4x4_time[0]],
-        'Savannah-mc': [siso_time[1], mimo_2x2_time[1], mimo_4x4_time[1]],
-        'Savannah-mc (arma-vec)': [siso_time[2], mimo_2x2_time[2], mimo_4x4_time[2]],
-        'Savannah-mc (arma-cube)': [siso_time[3], mimo_2x2_time[3], mimo_4x4_time[3]]
+        'Agora': [siso_time[0], mimo_2x2_time[0], mimo_4x4_time[0], mimo_8x8_time[0]],
+        'Savannah-mc': [siso_time[1], mimo_2x2_time[1], mimo_4x4_time[1], mimo_8x8_time[1]],
+        'Savannah-mc (arma-vec)': [siso_time[2], mimo_2x2_time[2], mimo_4x4_time[2], mimo_8x8_time[2]],
+        'Savannah-mc (arma-cube)': [siso_time[3], mimo_2x2_time[3], mimo_4x4_time[3], mimo_8x8_time[3]],
     }
 
     factor_agora = []
@@ -197,7 +202,7 @@ def plot(output_format='png', output_filepath='../fig/', xkcd=False):
     legend_fig = plt.figure(figsize=(6, 0.5))
     legend = legend_fig.legend(handles, labels, fontsize=40, loc='center', frameon=False, ncol=4)
     legend_fig.savefig(
-        output_filepath + 'legend_time_grouped_bar_mimo_revised.' + output_format,
+        output_filepath + 'legend_time_grouped_bar_mimo_updated.' + output_format,
         format=output_format,
         bbox_inches='tight')
     plt.clf()
