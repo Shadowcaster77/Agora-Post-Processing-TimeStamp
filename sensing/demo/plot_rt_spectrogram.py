@@ -18,6 +18,26 @@ def get_jet_colormap():
     lut = (np.array([cmap(i / 255.0)[:3] for i in range(256)]) * 255).astype(np.uint8)
     return ColorMap(pos=np.linspace(0.0, 1.0, 256), color=lut)
 
+def get_noise_offset(power, mode):
+    # calculate the noise power and refer the signal to that and get real power
+    threshold = np.median(np.quantile(power, q=0.7))
+    noise_power_db = power.copy()
+    noise_power_db[noise_power_db>threshold] = np.nan
+    noise_power_db = np.nanmean(noise_power_db) # convert matrix to scalar
+    offset = -noise_power_db + (-173.8)
+    # offset = -108.78414924975709 # profiled value from 'sparse' config (100 MHz)
+    # offset = -115.95924359478522 # profiled value from 'wb' config (500 MHz)
+    print(f"Noise offset: {offset}")
+    if mode == 'sim':
+        # noise_figure = noise_figure_sim
+        noise_figure = 0
+    elif mode == 'ota':
+        # noise_figure = noise_figure_ota
+        noise_figure = 20
+    else:
+        raise ValueError("Invalid mode. Choose 'sim' or 'ota'.")
+
+    return offset + noise_figure
 
 class SpectrogramGUI:
     def __init__(self, folder, max_rows=200):
@@ -62,6 +82,10 @@ class SpectrogramGUI:
         self.timer.timeout.connect(self.update_spectrogram)
         self.timer.start(1)
 
+        # Counter to update noise floor calibration
+        self.noise_offset = 0
+        self.noise_offset_counter = 0
+
     def read_new_files(self):
         files = sorted(glob.glob(os.path.join(self.folder, "*.bin")))
         new_rows = []
@@ -89,6 +113,18 @@ class SpectrogramGUI:
             self.spectrogram = self.spectrogram[-self.max_rows:]
             img_array = np.array(self.spectrogram)
             img_array = img_array.T  # Transpose to match the plot orientation
+            
+            # Update noise offset every 100 frames
+            if self.noise_offset_counter % 100 == 0:
+                # Update noise offset every 10 frames
+                self.noise_offset_counter = 0
+                if len(img_array) > 0:
+                    # Calculate noise offset based on the current image
+                    self.noise_offset = get_noise_offset(img_array, mode='ota')
+                    img_array_calib = img_array + self.noise_offset
+            else:
+                self.noise_offset_counter += 1
+
 
             # Real-world axis scaling
             sample_rate = 100e6
@@ -96,9 +132,9 @@ class SpectrogramGUI:
             scale_y = self.fft_size / sample_rate # s/row
 
             self.img.setImage(
-                img_array,
+                img_array_calib,
                 autoLevels=False,
-                levels=[-80, 0]
+                levels=[-180, -110]
             )
 
             # force freq to be shifted
@@ -107,7 +143,7 @@ class SpectrogramGUI:
             transform.scale(scale_x, scale_y)
             self.img.setTransform(transform)
 
-            self.colorbar.setLevels([-80, 0])
+            self.colorbar.setLevels([-180, -110])
 
             # set time-freq range
             self.plot.setXRange(-sample_rate / 2, sample_rate / 2, padding=0)
