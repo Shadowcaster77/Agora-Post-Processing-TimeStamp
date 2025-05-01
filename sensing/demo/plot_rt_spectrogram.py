@@ -99,7 +99,6 @@ class SpectrogramGUI:
                         print(f"Detected FFT size: {self.fft_size}")
                     if data.shape[0] == self.fft_size:
                         power = 10 * np.log10(np.abs(data)**2 + 1e-12)
-                        power = np.fft.fftshift(power)  # fftshift
                         new_rows.append(power)
                         self.processed.add(f)
                 except Exception as e:
@@ -116,7 +115,6 @@ class SpectrogramGUI:
             
             # Update noise offset every 100 frames
             if self.noise_offset_counter % 100 == 0:
-                # Update noise offset every 10 frames
                 self.noise_offset_counter = 0
                 if len(img_array) > 0:
                     # Calculate noise offset based on the current image
@@ -157,5 +155,5 @@ class SpectrogramGUI:
 if __name__ == '__main__':
     folder_path = "../../../savannah_isac/files/sensing/"  # .bin files are here
 
-    gui = SpectrogramGUI(folder_path, max_rows=200)
+    gui = SpectrogramGUI(folder_path, max_rows=2000)
     gui.run()

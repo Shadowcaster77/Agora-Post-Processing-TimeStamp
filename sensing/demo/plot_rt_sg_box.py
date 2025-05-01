@@ -2,6 +2,13 @@
 # Plot the spectrogram in real-time in a waterfall manner by reading the latest
 # binary file and overlay bounding boxes read from CSV files.
 #
+# Usage: must first delete the old files in the folder, then run this script
+# with the dumpToFile() in DoSensingTime.cc and imag_proc_partition() in
+# DoSensingFreq.cc enabled.
+#
+# The code supports up to 1e6-10e6 sampling rate (for the speed issue). 1e6 with
+# no delay, and 10e6 with significant (and visible) delay.
+#
 # Author: Chung-Hsuan Tung (with bounding box overlay updated)
 ################################################################################
 
@@ -157,8 +164,8 @@ class SpectrogramGUI:
                                                          mode=self.mode)
                     img_array_calib = img_array + self.noise_offset
             else:
-                self.noise_offset_counter += 1
                 img_array_calib = img_array + self.noise_offset
+            self.noise_offset_counter += 1
 
             scale_x = self.sample_rate / self.fft_size
             scale_y = self.fft_size / self.sample_rate
