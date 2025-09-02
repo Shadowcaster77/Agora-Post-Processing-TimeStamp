@@ -13,10 +13,10 @@ config = ["Sparse", "RFsynth Default", "Control", "Dense-Mix", "Dense-DSSS", "Wi
 y = np.arange(len(config))
 bar_height = 0.25
 
-# Searchlight (A) vs RISE (B) / DeepRadar (C)
-speedup_A = [1.97, 1.33, 1.37, 0.96, 1.57, 0.05]
-speedup_B = [38.93, 40.84, 38.80, 34.48, 26.95, 36.26]
-speedup_C = [1, 1, 1, 1, 1, 1]
+# RISE (B) vs Searchlight (A) / DeepRadar (C)
+speedup_A = [19.79, 30.71, 28.29, 35.74, 17.13, 791.49]
+speedup_B = [1, 1, 1, 1, 1, 1]
+speedup_C = [2.40, 2.43, 2.33, 2.35, 2.31, 1.95]
 
 pd_A =  [18.18, 38.46, 2.78, 0.88, 11.11, 0.00]
 pd_B =  [63.63, 84.61, 41.66, 41.22, 62.96, 76.19]
@@ -51,9 +51,9 @@ font_tick = 20
 fig_size = (20, 4.8)
 
 # Metric titles and data
-titles = ["Speedup to DeepRadar", r"$P_d$ (%)", r"$P_{fa}$ (%)", "IoU (%)"]
+titles = ["Relative Run Time", r"$P_d$ (%)", r"$P_{fa}$ (%)", "IoU (%)"]
 data_pairs = [
-    (speedup_A, speedup_B, speedup_C, "log", [0.1, max(speedup_B)*15]),
+    (speedup_A, speedup_B, speedup_C, "log", [0.1, max(speedup_B)*100000]),
     (pd_A, pd_B, pd_C, "linear", [0, 100]),
     (pfa_A, pfa_B, pfa_C, "linear", [0, 100]),
     (iou_A, iou_B, iou_C, "linear", [0, 100]),
@@ -91,10 +91,12 @@ for idx, (ax, (data_a, data_b, data_c, scale, xlim), title) in enumerate(zip(axs
     ax.tick_params(axis='x', labelsize=font_tick)
 
     # Annotate speedup with "×"
-    if title == "Speedup to DeepRadar":
+    if title == "Relative Run Time":
         for i in range(len(config)):
-            ax.text(data_b[i] * 1.2, y[i] - bar_height,
-                    f"{data_b[i]:.2f}×", va='center', fontsize=font_tick)
+            ax.text(data_c[i] * 1.2, y[i] - bar_height,
+                    f"{data_c[i]:.2f}×", va='center', fontsize=font_tick)
+            ax.text(data_a[i] * 1.2, y[i] + bar_height,
+                    f"{data_a[i]:.2f}×", va='center', fontsize=font_tick)
 
 # Shared legend on top
 handles, labels = axs[0].get_legend_handles_labels()
