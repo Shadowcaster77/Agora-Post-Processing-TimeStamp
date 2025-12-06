@@ -13,10 +13,10 @@ pandas = "*"
 seaborn = "*"
 openpyxl = "*"
 opencv-python = "*"
-pyyaml = "*"
 pyqt5 = "==5.15.10"
 pyqtgraph = "==0.13.3"
 watchdog = "*"
+pyyaml = "*"
 
 [dev-packages]
 
