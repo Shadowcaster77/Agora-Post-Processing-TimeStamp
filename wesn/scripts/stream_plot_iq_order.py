@@ -90,6 +90,30 @@ def load_iq_from_csv(path):
     return re, im
 
 
+def gen_qam_constellation(M):
+    """Generate a square QAM constellation of order M, normalized to unit average power.
+    Returns ndarray of complex symbols.
+    """
+    M = int(M)
+    if M <= 0:
+        raise ValueError("Invalid QAM order")
+    # support square QAM only
+    sqrtM = int(np.round(np.sqrt(M)))
+    if sqrtM * sqrtM != M:
+        raise ValueError("Only square QAM orders are supported (e.g. 4,16,64)")
+    # levels: e.g. for sqrtM=4 -> [-3, -1, 1, 3]
+    levels = np.arange(-sqrtM + 1, sqrtM, 2)
+    pts = []
+    for im_val in levels:
+        for re_val in levels:
+            pts.append(complex(re_val, im_val))
+    pts = np.array(pts, dtype=np.complex128)
+    # normalize to unit average power
+    mean_power = np.mean(np.abs(pts) ** 2)
+    pts = pts / np.sqrt(mean_power)
+    return pts
+
+
 def main():
     parser = argparse.ArgumentParser(description="Live constellation plot from CSV files")
     parser.add_argument("folder", nargs="?", default="../../../savannah_wesn/data",
@@ -100,6 +124,8 @@ def main():
                         help="Marker size for scatter plot")
     parser.add_argument("--update-pause", type=float, default=0.2,
                         help="Pause in seconds after updating each file for smoother demo (default: 0.2)")
+    parser.add_argument("--qam-order", type=int, default=16,
+                        help="QAM modulation order used for golden constellation (e.g. 4,16,64). Default: 16")
     args = parser.parse_args()
 
     folder = args.folder
@@ -116,6 +142,7 @@ def main():
     fig, ax = plt.subplots()
     sc0 = None
     sc1 = None
+    evm_text = None
 
     last_path = None
     last_mtime = 0
@@ -130,7 +157,7 @@ def main():
         # sequentially iterate frames and symbols and plot when file becomes available
         start_frame = getattr(args, 'start_frame', 0)
         start_sym = getattr(args, 'start_sym', 0)
-        max_sym = getattr(args, 'max_sym', 10)
+        max_sym = getattr(args, 'max_sym', 0)
         ant = getattr(args, 'ant', 0)
 
         for frame in itertools.count(start=start_frame):
@@ -176,8 +203,6 @@ def main():
                     if xy1 is not None:
                         point_count1 = xy1.shape[0]
                         sc1 = ax.scatter(xy1[:, 0], xy1[:, 1], s=args.marker_size, edgecolors='none', color='red', label=f'ant{secondary_ant}')
-                    ax.axhline(0, linewidth=0.5)
-                    ax.axvline(0, linewidth=0.5)
                     ax.set_xlabel("In-phase (I)")
                     ax.set_ylabel("Quadrature (Q)")
                     ax.set_title("Constellation Diagram")
@@ -193,6 +218,11 @@ def main():
                     except Exception:
                         background = None
                         use_blit = False
+                    # create EVM text placeholder
+                    try:
+                        evm_text = ax.text(0.02, 0.95, '', transform=ax.transAxes, color='black', fontsize=10, va='top')
+                    except Exception:
+                        evm_text = None
                 else:
                     # update primary
                     if xy0.shape[0] == point_count0:
@@ -214,6 +244,53 @@ def main():
                                 sc1.remove()
                                 sc1 = ax.scatter(xy1[:, 0], xy1[:, 1], s=args.marker_size, edgecolors='none', color='red', label=f'ant{secondary_ant}')
 
+                # compute EVM to golden constellation if requested
+                qam_order = getattr(args, 'qam_order', None)
+                const_pts = None
+                if qam_order is not None and evm_text is not None:
+                    try:
+                        const_pts = gen_qam_constellation(qam_order)
+                    except Exception:
+                        const_pts = None
+
+                if const_pts is not None and evm_text is not None:
+                    # compute EVM for primary
+                    z0 = xy0[:, 0] + 1j * xy0[:, 1]
+                    # find nearest constellation points
+                    # distance matrix: NxK
+                    d2 = np.abs(z0[:, None] - const_pts[None, :]) ** 2
+                    idx = np.argmin(d2, axis=1)
+                    ref0 = const_pts[idx]
+                    err0 = z0 - ref0
+                    evm_rms0 = np.sqrt(np.mean(np.abs(err0) ** 2))
+                    ref_rms = np.sqrt(np.mean(np.abs(ref0) ** 2)) if ref0.size > 0 else 0.0
+                    if ref_rms > 0:
+                        evm_linear0 = evm_rms0 / ref_rms
+                        evm_pct0 = evm_linear0 * 100.0
+                        evm_db0 = 20.0 * np.log10(evm_linear0) if evm_linear0 > 0 else -np.inf
+                    else:
+                        evm_pct0 = float('nan')
+                        evm_db0 = float('nan')
+
+                    # compute EVM for secondary if present and same length
+                    evm_str = f"ant{primary_ant}: {evm_pct0:.2f}% ({evm_db0:.1f} dB)"
+                    if xy1 is not None and xy1.shape[0] == xy0.shape[0]:
+                        z1 = xy1[:, 0] + 1j * xy1[:, 1]
+                        d21 = np.abs(z1[:, None] - const_pts[None, :]) ** 2
+                        idx1 = np.argmin(d21, axis=1)
+                        ref1 = const_pts[idx1]
+                        err1 = z1 - ref1
+                        evm_rms1 = np.sqrt(np.mean(np.abs(err1) ** 2))
+                        if ref_rms > 0:
+                            evm_linear1 = evm_rms1 / ref_rms
+                            evm_pct1 = evm_linear1 * 100.0
+                            evm_db1 = 20.0 * np.log10(evm_linear1) if evm_linear1 > 0 else -np.inf
+                        else:
+                            evm_pct1 = float('nan')
+                            evm_db1 = float('nan')
+                        evm_str += f" | ant{secondary_ant}: {evm_pct1:.2f}% ({evm_db1:.1f} dB)"
+                    evm_text.set_text(evm_str)
+
                 # draw both artists
                 if use_blit and background is not None:
                     try:
@@ -221,6 +298,8 @@ def main():
                         ax.draw_artist(sc0)
                         if sc1 is not None:
                             ax.draw_artist(sc1)
+                        if evm_text is not None:
+                            ax.draw_artist(evm_text)
                         fig.canvas.blit(ax.bbox)
                     except Exception:
                         fig.canvas.draw_idle()
